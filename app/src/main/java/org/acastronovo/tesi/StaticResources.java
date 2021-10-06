@@ -1,4 +1,4 @@
-package org.cdortona.tesi;
+package org.acastronovo.tesi;
 
 /**
  *@author Cristian D'Ortona
@@ -9,7 +9,7 @@ package org.cdortona.tesi;
 
 final class StaticResources {
 
-    private static final String PACKAGE_NAME = "com.cdortona.tesi";
+    private static final String PACKAGE_NAME = "com.acastronovo.tesi";
 
     //ESP32 info
     static final String ESP32_ADDRESS = "30:AE:A4:F5:88:6E";

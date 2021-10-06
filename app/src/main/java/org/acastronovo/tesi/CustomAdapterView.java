@@ -1,4 +1,4 @@
-package org.cdortona.tesi;
+package org.acastronovo.tesi;
 
 import android.content.Context;
 import android.content.Intent;

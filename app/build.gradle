@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     buildToolsVersion "30.0.3"
     defaultConfig {
-        applicationId "org.cdortona.tesi"
+        applicationId "org.acastronovo.tesi"
         minSdkVersion 23
         targetSdkVersion 28
         versionCode 1

@@ -1,4 +1,4 @@
-package org.cdortona.tesi;
+package org.acastronovo.tesi;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;

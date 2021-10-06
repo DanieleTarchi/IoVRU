@@ -1,4 +1,4 @@
-package org.cdortona.tesi;
+package org.acastronovo.tesi;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
