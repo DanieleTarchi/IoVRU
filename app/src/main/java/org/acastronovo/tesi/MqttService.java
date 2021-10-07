@@ -30,7 +30,7 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 
 /**
- *@author Cristian D'Ortona
+ *@author Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *
