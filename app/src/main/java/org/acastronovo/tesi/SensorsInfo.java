@@ -96,6 +96,8 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     //sensors
     SensorManager sensorManager;
     Sensor pedometer;
+    boolean isStepSensorPresent;
+    int stepDetect = 0; //To count step
 
     //Toolbar
     Toolbar toolbar;
@@ -153,7 +155,19 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
         //built-in sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        if((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR))!=null)
+        {
+            //StepDetector sensor is present
+            pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+            isStepSensorPresent = true;
+            //Start listen event for pedometer
+            sensorManager.registerListener(this, pedometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }else{
+            //StepDetector sensor is not present
+            pedometerValue.setText("Not Present");
+            isStepSensorPresent = false;
+        }
+        pedometerValue.setText("0.0");  //Initialization of pedometerValue
 
 
         //here I'm specifying the intent filters I want to subscribe to in order to get their updates
@@ -379,15 +393,10 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event) {
-        Sensor sensorChanged = event.sensor;
-        float[] values = event.values;
-        if (values.length > 0) {
-            switch (sensorChanged.getType()) {
-                case Sensor.TYPE_STEP_COUNTER:
-                    if (connectedToGatt)
-                        pedometerValue.setText(Float.toString(values[0]));
-            }
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if(sensorEvent.sensor == pedometer){
+            stepDetect = (int) (stepDetect + sensorEvent.values[0]);
+            pedometerValue.setText(String.valueOf(stepDetect));
         }
     }
 
