@@ -29,7 +29,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import java.text.NumberFormat;
 
 /**
- *@author Cristian D'Ortona
+ *@author Cristian D'Ortona / Andrea Castronovo / Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *

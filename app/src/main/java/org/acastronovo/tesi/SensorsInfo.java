@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 /**
- *@author Cristian D'Ortona
+ *@author Cristian D'Ortona / Andrea Castronovo / Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *
@@ -96,7 +96,9 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     //sensors
     SensorManager sensorManager;
     Sensor pedometer;
+    Sensor temperature;
     boolean isStepSensorPresent;
+    boolean isAmbientTempPresent;
     int stepDetect = 0; //To count step
 
     //Toolbar
@@ -155,19 +157,8 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
         //built-in sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        if((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR))!=null)
-        {
-            //StepDetector sensor is present
-            pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
-            isStepSensorPresent = true;
-            //Start listen event for pedometer
-            sensorManager.registerListener(this, pedometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }else{
-            //StepDetector sensor is not present
-            pedometerValue.setText("Not Present");
-            isStepSensorPresent = false;
-        }
-        pedometerValue.setText("0.0");  //Initialization of pedometerValue
+        setSensor(Sensor.TYPE_STEP_DETECTOR);
+        setSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
 
 
         //here I'm specifying the intent filters I want to subscribe to in order to get their updates
@@ -213,9 +204,59 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         super.onResume();
         //userName.setText(user.getName());
         locationUpdate();
+
+        if(isAmbientTempPresent) {
+            //Start listen event for temperature
+            sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(isAmbientTempPresent){
+            sensorManager.unregisterListener(this, temperature);
+        }
+    }
 
+    //Function to set sensor
+    private void setSensor(int TYPE_SENSOR){
+        switch(TYPE_SENSOR){
+            case 18:
+                //Step detector sensor
+                if((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR))!=null)
+                {
+                    //StepDetector sensor is present
+                    pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+                    isStepSensorPresent = true;
+                    pedometerValue.setText("0.0");  //Initialization of pedometerValue
+                    //Start listen event for pedometer
+                    sensorManager.registerListener(this, pedometer, SensorManager.SENSOR_DELAY_NORMAL);
+                }else{
+                    //StepDetector sensor is not present
+                    pedometerValue.setText("Not Present");
+                    isStepSensorPresent = false;
+                }
+                break;
+            case 13:
+                //Ambient temperature sensor
+                if((sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE))!=null)
+                {
+                    //AmbientTemperature sensor is present
+                    temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+                    isAmbientTempPresent = true;
+                    /*//Start listen event for temperature
+                      //sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+                    --> enable on resume to disable on pause*/
+                }else{
+                    //AmbientTemperature sensor is not present
+                    tempValue.setText("Not Present");
+                    isAmbientTempPresent = false;
+                }
+                break;
+
+        }
+    }
 
     public void changeProfilePic(View view) {
         Intent choosePic = new Intent(Intent.ACTION_PICK);
@@ -397,6 +438,9 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         if(sensorEvent.sensor == pedometer){
             stepDetect = (int) (stepDetect + sensorEvent.values[0]);
             pedometerValue.setText(String.valueOf(stepDetect));
+        }
+        else if(sensorEvent.sensor == temperature){
+            tempValue.setText(sensorEvent.values[0] + " °C");
         }
     }
 
