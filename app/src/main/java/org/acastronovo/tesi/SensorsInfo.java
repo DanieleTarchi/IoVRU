@@ -50,6 +50,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -97,9 +98,17 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     SensorManager sensorManager;
     Sensor pedometer;
     Sensor temperature;
+    Sensor pressureSensor;
+    Sensor humiditySensor;
     boolean isStepSensorPresent;
-    boolean isAmbientTempPresent;
+    boolean isAmbientTempPresent = false;
+    boolean isPressureSensorPresent = false;
+    boolean isHumiditySensorPresent = false; //Init to false state to don't register/unreg listener if bluethoot activated
     int stepDetect = 0; //To count step
+    float tempValueSensor = 0;
+    float pressureValueSensor = 0;
+    float humidityValueSensor = 0;
+
 
     //Toolbar
     Toolbar toolbar;
@@ -157,8 +166,23 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
         //built-in sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        /*  TO PRINT SENSOR LIST OF PHONE
+        String SensorList;
+        List<Sensor> deviceSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
+        for(int i = 1; i < deviceSensors.size(); i++){
+            SensorList = ("Sensor number: " + i + "\n"
+                    + "Sensor name: " + deviceSensors.get(i).getName() + "\n"
+                    + "Sensor type: " + deviceSensors.get(i).getStringType() + "\n"
+                    + "Sensor vendor: " + deviceSensors.get(i).getVendor() + "\n"
+                    + "Sensor version: "+ deviceSensors.get(i).getVersion()+ "\n" + "\n");
+            System.out.println(SensorList);
+        }*/
         setSensor(Sensor.TYPE_STEP_DETECTOR);
-        setSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+            //If bluethoot disconected, extract data from phone sensor
+            setSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+            setSensor(Sensor.TYPE_PRESSURE);
+            setSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+
 
 
         //here I'm specifying the intent filters I want to subscribe to in order to get their updates
@@ -205,9 +229,17 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         //userName.setText(user.getName());
         locationUpdate();
 
-        if(isAmbientTempPresent) {
+        if(isAmbientTempPresent){
             //Start listen event for temperature
             sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(isPressureSensorPresent){
+            //Start listen event for pressure
+            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(isHumiditySensorPresent){
+            //Start listen event for humidity
+            sensorManager.registerListener(this, humiditySensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
 
@@ -216,6 +248,12 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         super.onPause();
         if(isAmbientTempPresent){
             sensorManager.unregisterListener(this, temperature);
+        }
+        if(isPressureSensorPresent){
+            sensorManager.unregisterListener(this, pressureSensor);
+        }
+        if(isHumiditySensorPresent){
+            sensorManager.unregisterListener(this, humiditySensor);
         }
     }
 
@@ -252,6 +290,32 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                     //AmbientTemperature sensor is not present
                     tempValue.setText("Not Present");
                     isAmbientTempPresent = false;
+                }
+                break;
+            case 6:
+                //Pressure sensor
+                if((sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE))!=null)
+                {
+                    //Pressure sensor is present
+                    pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+                    isPressureSensorPresent = true;
+                }else{
+                    //Pressure sensor is not present
+                    pressureValue.setText("Not Present");
+                    isPressureSensorPresent = false;
+                }
+                break;
+            case 12:
+                //Humidity sensor
+                if((sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY))!=null)
+                {
+                    //Humidity sensor is present
+                    humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+                    isHumiditySensorPresent = true;
+                }else{
+                    //Humidity sensor is not present
+                    humidityValue.setText("Not Present");
+                    isHumiditySensorPresent = false;
                 }
                 break;
 
@@ -435,12 +499,25 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
+        String appoggioStringa;
         if(sensorEvent.sensor == pedometer){
             stepDetect = (int) (stepDetect + sensorEvent.values[0]);
             pedometerValue.setText(String.valueOf(stepDetect));
         }
         else if(sensorEvent.sensor == temperature){
-            tempValue.setText(sensorEvent.values[0] + " °C");
+            tempValueSensor = sensorEvent.values[0];
+            appoggioStringa = tempValueSensor + " °C";
+            tempValue.setText(appoggioStringa);
+        }
+        else if(sensorEvent.sensor == pressureSensor){
+            pressureValueSensor = sensorEvent.values[0];
+            appoggioStringa = pressureValueSensor + " hPa";
+            pressureValue.setText(appoggioStringa);
+        }
+        else if(sensorEvent.sensor == humiditySensor){
+            humidityValueSensor = sensorEvent.values[0];
+            appoggioStringa = humidityValueSensor + " %";
+            humidityValue.setText(appoggioStringa);
         }
     }
 
