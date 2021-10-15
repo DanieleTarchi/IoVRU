@@ -177,11 +177,22 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                     + "Sensor version: "+ deviceSensors.get(i).getVersion()+ "\n" + "\n");
             System.out.println(SensorList);
         }*/
-        setSensor(Sensor.TYPE_STEP_DETECTOR);
-            //If bluethoot disconected, extract data from phone sensor
-            setSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-            setSensor(Sensor.TYPE_PRESSURE);
-            setSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+
+        //Set sensor for Step Detector
+        if((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR))!=null)
+        {
+            //StepDetector sensor is present
+            pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+            isStepSensorPresent = true;
+            pedometerValue.setText("0.0");  //Initialization of pedometerValue
+            //Start listen event for pedometer
+            sensorManager.registerListener(this, pedometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }else{
+            //StepDetector sensor is not present
+            pedometerValue.setText("Not Present");
+            isStepSensorPresent = false;
+        }
+        setSensor();
 
 
 
@@ -229,96 +240,60 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         //userName.setText(user.getName());
         locationUpdate();
 
-        if(isAmbientTempPresent){
-            //Start listen event for temperature
-            sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+        if(!connectedToGatt){
+            registerListenerSensor();
         }
-        if(isPressureSensorPresent){
-            //Start listen event for pressure
-            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        if(isHumiditySensorPresent){
-            //Start listen event for humidity
-            sensorManager.registerListener(this, humiditySensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if(isAmbientTempPresent){
-            sensorManager.unregisterListener(this, temperature);
-        }
-        if(isPressureSensorPresent){
-            sensorManager.unregisterListener(this, pressureSensor);
-        }
-        if(isHumiditySensorPresent){
-            sensorManager.unregisterListener(this, humiditySensor);
+
+        if(!connectedToGatt) {
+            unregisterListenerSensor();
         }
     }
 
     //Function to set sensor
-    private void setSensor(int TYPE_SENSOR){
-        switch(TYPE_SENSOR){
-            case 18:
-                //Step detector sensor
-                if((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR))!=null)
-                {
-                    //StepDetector sensor is present
-                    pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
-                    isStepSensorPresent = true;
-                    pedometerValue.setText("0.0");  //Initialization of pedometerValue
-                    //Start listen event for pedometer
-                    sensorManager.registerListener(this, pedometer, SensorManager.SENSOR_DELAY_NORMAL);
-                }else{
-                    //StepDetector sensor is not present
-                    pedometerValue.setText("Not Present");
-                    isStepSensorPresent = false;
-                }
-                break;
-            case 13:
-                //Ambient temperature sensor
-                if((sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE))!=null)
-                {
-                    //AmbientTemperature sensor is present
-                    temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-                    isAmbientTempPresent = true;
-                    /*//Start listen event for temperature
-                      //sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
-                    --> enable on resume to disable on pause*/
-                }else{
-                    //AmbientTemperature sensor is not present
-                    tempValue.setText("Not Present");
-                    isAmbientTempPresent = false;
-                }
-                break;
-            case 6:
-                //Pressure sensor
-                if((sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE))!=null)
-                {
-                    //Pressure sensor is present
-                    pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-                    isPressureSensorPresent = true;
-                }else{
-                    //Pressure sensor is not present
-                    pressureValue.setText("Not Present");
-                    isPressureSensorPresent = false;
-                }
-                break;
-            case 12:
-                //Humidity sensor
-                if((sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY))!=null)
-                {
-                    //Humidity sensor is present
-                    humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-                    isHumiditySensorPresent = true;
-                }else{
-                    //Humidity sensor is not present
-                    humidityValue.setText("Not Present");
-                    isHumiditySensorPresent = false;
-                }
-                break;
+    private void setSensor(){
+        //Ambient temperature sensor
+        if((sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE))!=null)
+        {
+            //AmbientTemperature sensor is present
+            temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+            isAmbientTempPresent = true;
+            /*  //Start listen event for temperature
+                //sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+            --> enable on resume to disable on pause*/
+        }else{
+            //AmbientTemperature sensor is not present
+            tempValue.setText("Not Present");
+            isAmbientTempPresent = false;
+        }
 
+        //Pressure sensor
+        if((sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE))!=null)
+        {
+            //Pressure sensor is present
+            pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+            isPressureSensorPresent = true;
+        }else{
+            //Pressure sensor is not present
+            pressureValue.setText("Not Present");
+            isPressureSensorPresent = false;
+        }
+
+        //Humidity sensor
+        if((sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY))!=null)
+        {
+            //Humidity sensor is present
+            humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+            isHumiditySensorPresent = true;
+        }else{
+            //Humidity sensor is not present
+            humidityValue.setText("Not Present");
+            isHumiditySensorPresent = false;
         }
     }
 
@@ -540,6 +515,11 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                     stateConnection = intent.getStringExtra(StaticResources.EXTRA_STATE_CONNECTION);
                     if (stateConnection.equals(StaticResources.STATE_CONNECTED)) {
                         connectedToGatt = true;
+
+                        //Stop listening from device sensor
+                        unregisterListenerSensor();
+
+                        //Set Gatt
                         invalidateOptionsMenu();
                         connectionStateString(StaticResources.STATE_CONNECTED);
                         //new Sensor object which will be passed to the MqttConnection constructor
@@ -679,6 +659,10 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         //this is gonna flush the location stored in the location variable
         locationProviderClient.flushLocations();
         locationProviderClient.removeLocationUpdates(locationCallBack);
+
+        //ReStart listening of device sensor
+        setSensor();
+        registerListenerSensor();
     }
 
     //this dynamically changes the string color and text of the string that shows on screen the connection state
@@ -696,6 +680,35 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 connectionState.setTextColor(Color.RED);
                 connectionState.setText(StaticResources.STATE_DISCONNECTED);
                 break;
+        }
+    }
+
+    //Function to unregister listener of sensor that i choose
+    private void unregisterListenerSensor(){
+        if (isAmbientTempPresent) {
+            sensorManager.unregisterListener(this, temperature);
+        }
+        if (isPressureSensorPresent) {
+            sensorManager.unregisterListener(this, pressureSensor);
+        }
+        if (isHumiditySensorPresent) {
+            sensorManager.unregisterListener(this, humiditySensor);
+        }
+    }
+
+    //Function to unregister listener of sensor that i choose
+    private void registerListenerSensor(){
+        if(isAmbientTempPresent){
+            //Start listen event for temperature
+            sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(isPressureSensorPresent){
+            //Start listen event for pressure
+            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(isHumiditySensorPresent){
+            //Start listen event for humidity
+            sensorManager.registerListener(this, humiditySensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
 
