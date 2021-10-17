@@ -108,6 +108,8 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     float tempValueSensor = 0;
     float pressureValueSensor = 0;
     float humidityValueSensor = 0;
+    float pressureAtSeaLevel = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
+    float altitudeValueSensor = 0;
 
 
     //Toolbar
@@ -488,6 +490,12 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             pressureValueSensor = sensorEvent.values[0];
             appoggioStringa = pressureValueSensor + " hPa";
             pressureValue.setText(appoggioStringa);
+
+            //Get Altitude from pressure
+            altitudeValueSensor = SensorManager.getAltitude(pressureAtSeaLevel, pressureValueSensor);
+            appoggioStringa = altitudeValueSensor + " m";
+            altitudeValue.setText(appoggioStringa);
+
         }
         else if(sensorEvent.sensor == humiditySensor){
             humidityValueSensor = sensorEvent.values[0];
