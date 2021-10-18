@@ -90,10 +90,6 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     TextView altitudeValue;
     TextView calories;
 
-    //location
-    FusedLocationProviderClient locationProviderClient;
-    ArrayList<Location> locationList;
-
     //sensors
     SensorManager sensorManager;
     Sensor pedometer;
@@ -162,10 +158,6 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         //calling the constructor in order to build a BluetoothAdaptor object
         connectToGattServer = new ConnectToGattServer(deviceAddress, this);
 
-        //location
-        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        locationList = new ArrayList<>();
-
         //built-in sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         /*  TO PRINT SENSOR LIST OF PHONE
@@ -181,22 +173,22 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         }*/
 
         //Set sensor for Step Detector
-        if((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR))!=null)
-        {
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)) != null) {
             //StepDetector sensor is present
             pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
             isStepSensorPresent = true;
             pedometerValue.setText("0.0");  //Initialization of pedometerValue
             //Start listen event for pedometer
             sensorManager.registerListener(this, pedometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }else{
+        } else {
             //StepDetector sensor is not present
             pedometerValue.setText("Not Present");
             isStepSensorPresent = false;
         }
         setSensor();
 
-
+        //Location
+        accessLocation();
 
         //here I'm specifying the intent filters I want to subscribe to in order to get their updates
         IntentFilter intentFilter = new IntentFilter();
@@ -240,9 +232,12 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
         //userName.setText(user.getName());
-        locationUpdate();
 
-        if(!connectedToGatt){
+        //Location
+        accessLocation();
+
+        //Restart register
+        if (!connectedToGatt) {
             registerListenerSensor();
         }
 
@@ -252,47 +247,44 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     protected void onPause() {
         super.onPause();
 
-        if(!connectedToGatt) {
+        if (!connectedToGatt) {
             unregisterListenerSensor();
         }
     }
 
     //Function to set sensor
-    private void setSensor(){
+    private void setSensor() {
         //Ambient temperature sensor
-        if((sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE))!=null)
-        {
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)) != null) {
             //AmbientTemperature sensor is present
             temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
             isAmbientTempPresent = true;
             /*  //Start listen event for temperature
                 //sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
             --> enable on resume to disable on pause*/
-        }else{
+        } else {
             //AmbientTemperature sensor is not present
             tempValue.setText("Not Present");
             isAmbientTempPresent = false;
         }
 
         //Pressure sensor
-        if((sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE))!=null)
-        {
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)) != null) {
             //Pressure sensor is present
             pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
             isPressureSensorPresent = true;
-        }else{
+        } else {
             //Pressure sensor is not present
             pressureValue.setText("Not Present");
             isPressureSensorPresent = false;
         }
 
         //Humidity sensor
-        if((sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY))!=null)
-        {
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)) != null) {
             //Humidity sensor is present
             humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
             isHumiditySensorPresent = true;
-        }else{
+        } else {
             //Humidity sensor is not present
             humidityValue.setText("Not Present");
             isHumiditySensorPresent = false;
@@ -389,6 +381,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
     //ask for phone call permissions
     private final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
+    private static final int REQUEST_CODE_LOCATION_PERMISSION = 1;
 
     public boolean phoneCallPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
@@ -402,26 +395,67 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     }
 
     //result of the phone call permissions or any other permission
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_CALL_PHONE: {
-                // If request is cancelled, the result arrays are empty.
-                if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(this, "Emergency Service won't work without permissions", Toast.LENGTH_SHORT).show();
-                    emergencyBoolean = false;
-                }
-                return;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_CALL_PHONE) {
+            // If request is cancelled, the result arrays are empty.
+            if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                Toast.makeText(this, "Emergency Service won't work without permissions", Toast.LENGTH_SHORT).show();
+                emergencyBoolean = false;
+            }
+            return;
+        } else if (requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults.length > 0) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getCurrentLocation();
+            } else {
+                Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    @Override
+    private void getCurrentLocation() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(3000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationServices.getFusedLocationProviderClient(SensorsInfo.this).requestLocationUpdates(locationRequest, new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                super.onLocationResult(locationResult);
+                LocationServices.getFusedLocationProviderClient(SensorsInfo.this).removeLocationUpdates(this);
+                if(locationResult != null && locationResult.getLocations().size() > 0){
+                    int latestLocationIndex = locationResult.getLocations().size() - 1;
+                    float latitude = (float) locationResult.getLocations().get(latestLocationIndex).getLatitude();
+                    float longitude = (float) locationResult.getLocations().get(latestLocationIndex).getLongitude();
+                    gpsValue.setText(String.format("Latitu: %.2f\nLongit: %.2f", latitude, longitude));
+                    altitudeValueSensor = (float) locationResult.getLocations().get(latestLocationIndex).getAltitude();
+                    if(!isPressureSensorPresent){
+                        altitudeValue.setText(altitudeValueSensor + " m");
+                    }
+                }
+            }
+        }, Looper.getMainLooper());
+    }
+
+        @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (connectedToGatt) {
             menu.findItem(R.id.action_connect).setVisible(false);
             menu.findItem(R.id.action_disconnect).setVisible(true);
             menu.findItem(R.id.action_mqtt).setEnabled(true);
-            accessLocation();
             pedometerValue.setText(Integer.toString(0));
             return true;
         } else if (!connectedToGatt) {
@@ -591,47 +625,11 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         }
     }
 
-    public void locationUpdate() {
-        //this creates a location request with default parameters
-        LocationRequest locationRequest = LocationRequest.create();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        locationProviderClient.requestLocationUpdates(locationRequest, locationCallBack, Looper.getMainLooper());
-    }
-
-    private final LocationCallback locationCallBack = new LocationCallback() {
-        @Override
-        public void onLocationResult(@NonNull LocationResult locationResult) {
-            super.onLocationResult(locationResult);
-            //this is similar to a for each loop that stores all the locations found in the location arrayList
-            locationList.addAll(locationResult.getLocations());
-        }
-    };
-
     private void accessLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
-            Log.d(TAG, "Location permission disabled, sent request permission activation dialog");
-            accessLocation();
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(SensorsInfo.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_LOCATION_PERMISSION);
         } else {
-            Log.d(TAG, "Location permission enabled");
-            locationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    //location is null if there is no known location found
-                    position = Math.round(location.getLatitude() * 100d) / 100d + "," +
-                            +Math.round(location.getLongitude() * 100d) / 100d;
-                    gpsValue.setText(position);
-                }
-            });
+            getCurrentLocation();
         }
     }
 
@@ -664,9 +662,6 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         connectionStateString(StaticResources.STATE_DISCONNECTED);
         //destroy the MQTT service
         //stopService(mqttService);
-        //this is gonna flush the location stored in the location variable
-        locationProviderClient.flushLocations();
-        locationProviderClient.removeLocationUpdates(locationCallBack);
 
         //ReStart listening of device sensor
         setSensor();
