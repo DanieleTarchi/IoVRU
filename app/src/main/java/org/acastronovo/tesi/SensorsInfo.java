@@ -65,6 +65,10 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
     private final String TAG = "SensorInfo";
 
+    //ask for phone call permissions
+    private final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
+    private static final int REQUEST_CODE_LOCATION_PERMISSION = 1;
+
     //I initialize an object from the class ConnectToGattServer which handles the connection to the GATT server of the ESP32
     ConnectToGattServer connectToGattServer;
 
@@ -379,10 +383,6 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         }
     }
 
-    //ask for phone call permissions
-    private final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
-    private static final int REQUEST_CODE_LOCATION_PERMISSION = 1;
-
     public boolean phoneCallPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
 
@@ -404,8 +404,8 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 Toast.makeText(this, "Emergency Service won't work without permissions", Toast.LENGTH_SHORT).show();
                 emergencyBoolean = false;
             }
-            return;
-        } else if (requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults.length > 0) {
+        }
+        if (requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults.length > 0) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getCurrentLocation();
             } else {
@@ -443,7 +443,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                     gpsValue.setText(String.format("Latitu: %.2f\nLongit: %.2f", latitude, longitude));
                     altitudeValueSensor = (float) locationResult.getLocations().get(latestLocationIndex).getAltitude();
                     if(!isPressureSensorPresent){
-                        altitudeValue.setText(altitudeValueSensor + " m");
+                        altitudeValue.setText(String.format("%.2f m", altitudeValueSensor));
                     }
                 }
             }
