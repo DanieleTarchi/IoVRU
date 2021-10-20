@@ -401,7 +401,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         if (requestCode == MY_PERMISSIONS_REQUEST_CALL_PHONE) {
             // If request is cancelled, the result arrays are empty.
             if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                Toast.makeText(this, "Emergency Service won't work without permissions", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "Emergency Service won't work without permissions", Toast.LENGTH_SHORT).show();
                 emergencyBoolean = false;
             }
         }
@@ -409,7 +409,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getCurrentLocation();
             } else {
-                Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
     }
