@@ -66,7 +66,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     private final String TAG = "SensorInfo";
 
     //ask for phone call permissions
-    private final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
+    private final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 2;
     private static final int REQUEST_CODE_LOCATION_PERMISSION = 1;
 
     //I initialize an object from the class ConnectToGattServer which handles the connection to the GATT server of the ESP32
@@ -104,12 +104,15 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     boolean isAmbientTempPresent = false;
     boolean isPressureSensorPresent = false;
     boolean isHumiditySensorPresent = false; //Init to false state to don't register/unreg listener if bluethoot activated
+    boolean locationPermission = false;
     int stepDetect = 0; //To count step
     float tempValueSensor = 0;
     float pressureValueSensor = 0;
     float humidityValueSensor = 0;
     float pressureAtSeaLevel = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
     float altitudeValueSensor = 0;
+    float latitude;
+    float longitude;
 
 
     //Toolbar
@@ -190,6 +193,8 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             isStepSensorPresent = false;
         }
         setSensor();
+        heartValue.setText("Not Present");//Init value of heart sensor, if connectedToGatt become true reset at value
+
 
         //Location
         accessLocation();
@@ -361,7 +366,29 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             case (R.id.action_mqtt):
                 Toast.makeText(this, "Sending data to remote clients", Toast.LENGTH_SHORT).show();
                 mqttService = new Intent(this, MqttService.class);
+                //Pass object at MqttService activity
                 mqttService.putExtra(StaticResources.EXTRA_LOCATION, position);
+                if(!connectedToGatt){
+                    if(isAmbientTempPresent){
+                        mqttService.putExtra(StaticResources.EXTRA_TEMP_VALUE_SENSOR, tempValueSensor);
+                    }
+                    if(isHumiditySensorPresent){
+                        mqttService.putExtra(StaticResources.EXTRA_HUMIDITY_VALUE_SENSOR, humidityValueSensor);
+                    }
+                    if(locationPermission){
+                        mqttService.putExtra(StaticResources.EXTRA_LATITUDE_VALUE_SENSOR, latitude);
+                        mqttService.putExtra(StaticResources.EXTRA_LONGITUDE_VALUE_SENSOR, longitude);
+                    }
+                    if(isPressureSensorPresent) {
+                        mqttService.putExtra(StaticResources.EXTRA_PRESSURE_VALUE_SENSOR, pressureValueSensor);
+                        mqttService.putExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, altitudeValueSensor);
+                    }else if(locationPermission){
+                        mqttService.putExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, altitudeValueSensor);
+                    }
+                    if(isStepSensorPresent){
+                        mqttService.putExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, stepDetect);
+                    }
+                }
                 try {
                     startService(mqttService);
                 } catch (IllegalStateException | SecurityException e) {
@@ -438,11 +465,11 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 LocationServices.getFusedLocationProviderClient(SensorsInfo.this).removeLocationUpdates(this);
                 if(locationResult != null && locationResult.getLocations().size() > 0){
                     int latestLocationIndex = locationResult.getLocations().size() - 1;
-                    float latitude = (float) locationResult.getLocations().get(latestLocationIndex).getLatitude();
-                    float longitude = (float) locationResult.getLocations().get(latestLocationIndex).getLongitude();
+                    latitude = (float) locationResult.getLocations().get(latestLocationIndex).getLatitude();
+                    longitude = (float) locationResult.getLocations().get(latestLocationIndex).getLongitude();
                     gpsValue.setText(String.format("Latitu: %.2f\nLongit: %.2f", latitude, longitude));
-                    altitudeValueSensor = (float) locationResult.getLocations().get(latestLocationIndex).getAltitude();
                     if(!isPressureSensorPresent){
+                        altitudeValueSensor = (float) locationResult.getLocations().get(latestLocationIndex).getAltitude();
                         altitudeValue.setText(String.format("%.2f m", altitudeValueSensor));
                     }
                 }
@@ -461,7 +488,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         } else if (!connectedToGatt) {
             menu.findItem(R.id.action_connect).setVisible(true);
             menu.findItem(R.id.action_disconnect).setVisible(false);
-            menu.findItem(R.id.action_mqtt).setEnabled(false);
+            menu.findItem(R.id.action_mqtt).setEnabled(true);
             return true;
         } else {
             return super.onPrepareOptionsMenu(menu);
@@ -627,8 +654,10 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
     private void accessLocation() {
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            locationPermission = false;
             ActivityCompat.requestPermissions(SensorsInfo.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_LOCATION_PERMISSION);
         } else {
+            locationPermission = true;
             getCurrentLocation();
         }
     }

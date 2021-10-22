@@ -32,10 +32,17 @@ final class StaticResources {
     //Keys for the putExtra method
     static final String EXTRA_STATE_CONNECTION = PACKAGE_NAME + "keyConnection";
     static final String EXTRA_TEMP_VALUE = PACKAGE_NAME + "tempValue";
+    static final String EXTRA_TEMP_VALUE_SENSOR = PACKAGE_NAME + "tempValueSensor";
     static final String EXTRA_HEART_VALUE = PACKAGE_NAME + "heartValue";
     static final String EXTRA_HUMIDITY_VALUE = PACKAGE_NAME + "humidityValue";
+    static final String EXTRA_HUMIDITY_VALUE_SENSOR = PACKAGE_NAME + "humidityValueSensor";
     static final String EXTRA_PRESSURE_VALUE = PACKAGE_NAME + "pressureValue";
+    static final String EXTRA_PRESSURE_VALUE_SENSOR = PACKAGE_NAME + "pressureValueSensor";
     static final String EXTRA_ALTITUDE_VALUE = PACKAGE_NAME + "altitudeValue";
+    static final String EXTRA_ALTITUDE_VALUE_SENSOR = PACKAGE_NAME + "altitudeValueSensor";
+    static final String EXTRA_PEDOMETER_VALUE_SENSOR = PACKAGE_NAME + "pedometerValueSensor";
+    static final String EXTRA_LATITUDE_VALUE_SENSOR = PACKAGE_NAME + "latitude";
+    static final String EXTRA_LONGITUDE_VALUE_SENSOR = PACKAGE_NAME + "longitude";
     static final String EXTRA_TEMP_BYTE_VALUE = PACKAGE_NAME + "tempValueByte";
     static final String EXTRA_HEART_BYTE_VALUE = PACKAGE_NAME + "heartValueByte";
     static final String EXTRA_HUMIDITY_BYTE_VALUE = PACKAGE_NAME + "humidityValueByte";
