@@ -118,8 +118,12 @@ public class MqttService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        //Get object from SensorInfo
         boolean sos_on = intent.getBooleanExtra(StaticResources.EXTRA_SOS_FLAG, false);
+        boolean connectedToGatt = intent.getBooleanExtra(StaticResources.EXTRA_CONNECTED_TO_GATT, false);
         String position = intent.getStringExtra(StaticResources.EXTRA_LOCATION);
+
+
         //this is checking if the user has fired the sos
         if(sos_on){
             try {

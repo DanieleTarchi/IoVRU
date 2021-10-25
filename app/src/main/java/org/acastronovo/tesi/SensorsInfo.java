@@ -368,6 +368,8 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 mqttService = new Intent(this, MqttService.class);
                 //Pass object at MqttService activity
                 mqttService.putExtra(StaticResources.EXTRA_LOCATION, position);
+                mqttService.putExtra(StaticResources.EXTRA_CONNECTED_TO_GATT, connectedToGatt);
+                mqttService.putExtra(StaticResources.EXTRA_LOCATION_PERMISSION, locationPermission);
                 if(!connectedToGatt){
                     if(isAmbientTempPresent){
                         mqttService.putExtra(StaticResources.EXTRA_TEMP_VALUE_SENSOR, tempValueSensor);

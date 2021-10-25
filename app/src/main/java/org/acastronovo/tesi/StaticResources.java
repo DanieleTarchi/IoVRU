@@ -43,6 +43,7 @@ final class StaticResources {
     static final String EXTRA_PEDOMETER_VALUE_SENSOR = PACKAGE_NAME + "pedometerValueSensor";
     static final String EXTRA_LATITUDE_VALUE_SENSOR = PACKAGE_NAME + "latitude";
     static final String EXTRA_LONGITUDE_VALUE_SENSOR = PACKAGE_NAME + "longitude";
+    static final String EXTRA_LOCATION_PERMISSION = PACKAGE_NAME + "location_permission";
     static final String EXTRA_TEMP_BYTE_VALUE = PACKAGE_NAME + "tempValueByte";
     static final String EXTRA_HEART_BYTE_VALUE = PACKAGE_NAME + "heartValueByte";
     static final String EXTRA_HUMIDITY_BYTE_VALUE = PACKAGE_NAME + "humidityValueByte";
@@ -67,6 +68,7 @@ final class StaticResources {
     static final String GPS_TOPIC = ESP32_ADDRESS + "/gps";
     static final String EXTRA_SOS_FLAG = PACKAGE_NAME + "sos_flag";
     static final String EXTRA_LOCATION = PACKAGE_NAME + "location_mqtt";
+    static final String EXTRA_CONNECTED_TO_GATT = PACKAGE_NAME + "connected_to_gatt";
     static final int QOS_0 = 0;
     static final int QOS_1 = 1;
     static final int QOS_2 = 2;
