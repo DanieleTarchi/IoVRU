@@ -41,7 +41,7 @@ public class MqttService extends Service {
     String TAG = "MqttService";
     MqttAsyncClient client;
     //test variables
-    private final String serverUri = "tcp://192.168.1.61:1883";
+    private final String serverUri = "tcp://192.168.1.17:1883";
     private final String user = "cPanel";
     private final String pwd = "test";
     private MemoryPersistence persistance;
@@ -119,10 +119,32 @@ public class MqttService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         //Get object from SensorInfo
+        String position = intent.getStringExtra(StaticResources.EXTRA_LOCATION);
         boolean sos_on = intent.getBooleanExtra(StaticResources.EXTRA_SOS_FLAG, false);
         boolean connectedToGatt = intent.getBooleanExtra(StaticResources.EXTRA_CONNECTED_TO_GATT, false);
-        String position = intent.getStringExtra(StaticResources.EXTRA_LOCATION);
+        boolean locationPermission = intent.getBooleanExtra(StaticResources.EXTRA_LOCATION_PERMISSION, false);
+        float latitude = 360;
+        float longitude = 360;
+        if(locationPermission){
+            latitude = intent.getFloatExtra(StaticResources.EXTRA_LATITUDE_VALUE_SENSOR, 360);
+            longitude = intent.getFloatExtra(StaticResources.EXTRA_LONGITUDE_VALUE_SENSOR, 360);
+        }
+        float tempValueSensor = intent.getFloatExtra(StaticResources.EXTRA_TEMP_VALUE_SENSOR, -999);
+        float humidityValueSensor = intent.getFloatExtra(StaticResources.EXTRA_HUMIDITY_VALUE_SENSOR, -1);
+        float pressureValueSensor = intent.getFloatExtra(StaticResources.EXTRA_PRESSURE_VALUE_SENSOR, 0);
+        float altitudeValueSensor = intent.getFloatExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, 9999);
+        int stepDetect = intent.getIntExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, -1);
 
+        /*TO TEST (PRINT) VALUE
+        System.out.println("CONNECTED TO GATT: " + connectedToGatt);
+        System.out.println("LOCATION PERMISSION: " + locationPermission);
+        System.out.println("LATITUDE: " + latitude);
+        System.out.println("LONGITUDE: " + longitude);
+        System.out.println("TEMPERATURE: " + tempValueSensor);
+        System.out.println("HUMIDITY: " + humidityValueSensor);
+        System.out.println("PRESSURE: " + pressureValueSensor);
+        System.out.println("ALTITUDE: " + altitudeValueSensor);
+        System.out.println("PEDOMETER: " + stepDetect);*/
 
         //this is checking if the user has fired the sos
         if(sos_on){
@@ -132,16 +154,47 @@ public class MqttService extends Service {
                 e.printStackTrace();
             }
         } else {
-            if(temp != null)
-                pub(StaticResources.TEMP_TOPIC, temp, StaticResources.QOS_0);
-            if(humidity != null)
-                pub(StaticResources.HUMIDITY_TOPIC, humidity, StaticResources.QOS_0);
-            if(pressure != null)
-                pub(StaticResources.PRESSURE_TOPIC, pressure, StaticResources.QOS_0);
-            if(altitude != null)
-                pub(StaticResources.ALTITUDE_TOPIC, altitude, StaticResources.QOS_0);
-            if(position != null)
-                pub(StaticResources.GPS_TOPIC, position, StaticResources.QOS_0);
+
+            if(stepDetect != -1){
+                String stepDetectString = String.valueOf(stepDetect);
+                pub(StaticResources.PEDOMETER_SENSOR_TOPIC, stepDetectString, StaticResources.QOS_0);
+            }
+
+            if(connectedToGatt){
+                if(temp != null)
+                    pub(StaticResources.TEMP_TOPIC, temp, StaticResources.QOS_0);
+                if(humidity != null)
+                    pub(StaticResources.HUMIDITY_TOPIC, humidity, StaticResources.QOS_0);
+                if(pressure != null)
+                    pub(StaticResources.PRESSURE_TOPIC, pressure, StaticResources.QOS_0);
+                if(altitude != null)
+                    pub(StaticResources.ALTITUDE_TOPIC, altitude, StaticResources.QOS_0);
+                if(position != null)
+                    pub(StaticResources.GPS_TOPIC, position, StaticResources.QOS_0);
+            } else{
+                if(tempValueSensor != -999){
+                    String tempValueSensorString = String.valueOf(tempValueSensor);
+                    pub(StaticResources.TEMP_SENSOR_TOPIC, tempValueSensorString, StaticResources.QOS_0);
+                }
+                if(humidityValueSensor != -1);{
+                    String humidityValueSensorString = String.valueOf(humidityValueSensor);
+                    pub(StaticResources.HUMIDITY_SENSOR_TOPIC, humidityValueSensorString, StaticResources.QOS_0);
+                }
+                if(pressureValueSensor != 0){
+                    String pressureValueSensorString = String.valueOf(pressureValueSensor);
+                    pub(StaticResources.PRESSURE_SENSOR_TOPIC, pressureValueSensorString, StaticResources.QOS_0);
+                }
+                if(altitudeValueSensor != 9999){
+                    String altitudeValueSensorString = String.valueOf(altitudeValueSensor);
+                    pub(StaticResources.ALTITUDE_SENSOR_TOPIC, altitudeValueSensorString, StaticResources.QOS_0);
+                }
+                if(locationPermission && latitude != 360 && longitude != 360){
+                    String positionString = String.valueOf(latitude);
+                    pub(StaticResources.LATITUDE_TOPIC, positionString, StaticResources.QOS_0);
+                    positionString = String.valueOf(longitude);
+                    pub(StaticResources.LONGITUDE_TOPIC, positionString, StaticResources.QOS_0);
+                }
+            }
         }
 
         return super.onStartCommand(intent, flags, startId);

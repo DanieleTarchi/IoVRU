@@ -11,6 +11,8 @@ final class StaticResources {
 
     private static final String PACKAGE_NAME = "com.acastronovo.tesi";
 
+    static final String SENSOR_DEVICE = "sensorsDevice";
+
     //ESP32 info
     static final String ESP32_ADDRESS = "30:AE:A4:F5:88:6E";
     static final String ESP32_BME280_SERVICE = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
@@ -60,12 +62,19 @@ final class StaticResources {
     static final String LWT_MESSAGE = "Last Will and Testament from " + ESP32_ADDRESS;
     static final String LWT_TOPIC = ESP32_ADDRESS + "/lastWill";
     static final String TEMP_TOPIC = ESP32_ADDRESS + "/temp";
+    static final String TEMP_SENSOR_TOPIC = SENSOR_DEVICE + "/temp";
     static final String HUMIDITY_TOPIC = ESP32_ADDRESS + "/humidity";
+    static final String HUMIDITY_SENSOR_TOPIC = SENSOR_DEVICE + "/humidity";
     static final String PRESSURE_TOPIC = ESP32_ADDRESS + "/pressure";
+    static final String PRESSURE_SENSOR_TOPIC = SENSOR_DEVICE + "/pressure";
     static final String ALTITUDE_TOPIC = ESP32_ADDRESS + "/altitude";
+    static final String ALTITUDE_SENSOR_TOPIC = SENSOR_DEVICE + "/altitude";
+    static final String PEDOMETER_SENSOR_TOPIC = SENSOR_DEVICE + "/pedometer";
     static final String HEART_TOPIC = ESP32_ADDRESS + "/heart";
     static final String SOS_TOPIC =  "emergency/sos";
     static final String GPS_TOPIC = ESP32_ADDRESS + "/gps";
+    static final String LATITUDE_TOPIC = SENSOR_DEVICE + "/latitude";
+    static final String LONGITUDE_TOPIC = SENSOR_DEVICE + "/longitude";
     static final String EXTRA_SOS_FLAG = PACKAGE_NAME + "sos_flag";
     static final String EXTRA_LOCATION = PACKAGE_NAME + "location_mqtt";
     static final String EXTRA_CONNECTED_TO_GATT = PACKAGE_NAME + "connected_to_gatt";
