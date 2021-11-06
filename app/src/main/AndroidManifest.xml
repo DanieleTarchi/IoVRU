@@ -26,6 +26,9 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <activity
+            android:name=".ReceivedData"
+            android:exported="true" />
+        <activity
             android:name=".AvailableDevices"
             android:exported="true" />
 

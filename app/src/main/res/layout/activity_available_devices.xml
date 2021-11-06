@@ -6,37 +6,27 @@
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar_main"
+        android:id="@+id/toolbar_available_devices"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:title="Available Devices" />
+        app:title="Available Devices"/>
 
     <ListView
-        android:id="@+id/list_view"
+        android:id="@+id/listView1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/toolbar_main"
+        android:layout_below="@id/toolbar_available_devices"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="2dp"
-        android:layout_marginTop="0dp"
+        android:layout_marginStart="-1dp"
+        android:layout_marginTop="-2dp"
         android:layout_marginEnd="2dp"
-        android:layout_marginBottom="1dp"
+        android:layout_marginBottom="3dp"
         android:background="@color/white"
         android:drawSelectorOnTop="false">
 
-        <ImageView
-            android:id="@+id/device"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="100dp"
-            android:src="@drawable/device">
-
-        </ImageView>
     </ListView>
-
-
 </RelativeLayout>
