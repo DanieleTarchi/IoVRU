@@ -125,14 +125,15 @@ public class MqttService extends Service {
         boolean locationPermission = intent.getBooleanExtra(StaticResources.EXTRA_LOCATION_PERMISSION, false);
         float latitude = 360;
         float longitude = 360;
+        float altitudeValueSensor = 9999;
         if(locationPermission){
             latitude = intent.getFloatExtra(StaticResources.EXTRA_LATITUDE_VALUE_SENSOR, 360);
             longitude = intent.getFloatExtra(StaticResources.EXTRA_LONGITUDE_VALUE_SENSOR, 360);
+            altitudeValueSensor = intent.getFloatExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, 9999);
         }
         float tempValueSensor = intent.getFloatExtra(StaticResources.EXTRA_TEMP_VALUE_SENSOR, -999);
         float humidityValueSensor = intent.getFloatExtra(StaticResources.EXTRA_HUMIDITY_VALUE_SENSOR, -1);
         float pressureValueSensor = intent.getFloatExtra(StaticResources.EXTRA_PRESSURE_VALUE_SENSOR, 0);
-        float altitudeValueSensor = intent.getFloatExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, 9999);
         int stepDetect = intent.getIntExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, -1);
 
         /*TO TEST (PRINT) VALUE

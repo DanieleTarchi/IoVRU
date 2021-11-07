@@ -100,7 +100,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     Sensor temperature;
     Sensor pressureSensor;
     Sensor humiditySensor;
-    boolean isStepSensorPresent;
+    boolean isStepSensorPresent = false;
     boolean isAmbientTempPresent = false;
     boolean isPressureSensorPresent = false;
     boolean isHumiditySensorPresent = false; //Init to false state to don't register/unreg listener if bluethoot activated
@@ -109,7 +109,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     float tempValueSensor = 0;
     float pressureValueSensor = 0;
     float humidityValueSensor = 0;
-    float pressureAtSeaLevel = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
+    //float pressureAtSeaLevel = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
     float altitudeValueSensor = 0;
     float latitude;
     float longitude;
@@ -179,7 +179,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             System.out.println(SensorList);
         }*/
 
-        //Set sensor for Step Detector
+        //Set sensor
         if ((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)) != null) {
             //StepDetector sensor is present
             pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
@@ -195,9 +195,6 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         setSensor();
         heartValue.setText("Not Present");//Init value of heart sensor, if connectedToGatt become true reset at value
 
-
-        //Location
-        accessLocation();
 
         //here I'm specifying the intent filters I want to subscribe to in order to get their updates
         IntentFilter intentFilter = new IntentFilter();
@@ -380,12 +377,10 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                     if(locationPermission){
                         mqttService.putExtra(StaticResources.EXTRA_LATITUDE_VALUE_SENSOR, latitude);
                         mqttService.putExtra(StaticResources.EXTRA_LONGITUDE_VALUE_SENSOR, longitude);
+                        mqttService.putExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, altitudeValueSensor);
                     }
                     if(isPressureSensorPresent) {
                         mqttService.putExtra(StaticResources.EXTRA_PRESSURE_VALUE_SENSOR, pressureValueSensor);
-                        mqttService.putExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, altitudeValueSensor);
-                    }else if(locationPermission){
-                        mqttService.putExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, altitudeValueSensor);
                     }
                     if(isStepSensorPresent){
                         mqttService.putExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, stepDetect);
@@ -438,6 +433,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getCurrentLocation();
             } else {
+                altitudeValue.setText("Not Present without location");
                 //Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
@@ -470,10 +466,9 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                     latitude = (float) locationResult.getLocations().get(latestLocationIndex).getLatitude();
                     longitude = (float) locationResult.getLocations().get(latestLocationIndex).getLongitude();
                     gpsValue.setText(String.format("Latitu: %.2f\nLongit: %.2f", latitude, longitude));
-                    if(!isPressureSensorPresent){
-                        altitudeValueSensor = (float) locationResult.getLocations().get(latestLocationIndex).getAltitude();
-                        altitudeValue.setText(String.format("%.2f m", altitudeValueSensor));
-                    }
+                    altitudeValueSensor = (float) locationResult.getLocations().get(latestLocationIndex).getAltitude();
+                    altitudeValue.setText(String.format("%.2f m", altitudeValueSensor));
+
                 }
             }
         }, Looper.getMainLooper());
@@ -539,31 +534,21 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        String appoggioStringa;
         if(sensorEvent.sensor == pedometer){
             stepDetect = (int) (stepDetect + sensorEvent.values[0]);
             pedometerValue.setText(String.valueOf(stepDetect));
         }
         else if(sensorEvent.sensor == temperature){
             tempValueSensor = sensorEvent.values[0];
-            appoggioStringa = tempValueSensor + " °C";
-            tempValue.setText(appoggioStringa);
+            tempValue.setText(String.format("%.2f °C", tempValueSensor));
         }
         else if(sensorEvent.sensor == pressureSensor){
             pressureValueSensor = sensorEvent.values[0];
-            appoggioStringa = pressureValueSensor + " hPa";
-            pressureValue.setText(appoggioStringa);
-
-            //Get Altitude from pressure
-            altitudeValueSensor = SensorManager.getAltitude(pressureAtSeaLevel, pressureValueSensor);
-            appoggioStringa = altitudeValueSensor + " m";
-            altitudeValue.setText(appoggioStringa);
-
+            pressureValue.setText(String.format("%.2f hPa", pressureValueSensor));
         }
         else if(sensorEvent.sensor == humiditySensor){
             humidityValueSensor = sensorEvent.values[0];
-            appoggioStringa = humidityValueSensor + " %";
-            humidityValue.setText(appoggioStringa);
+            humidityValue.setText(String.format("%.2f %", humidityValueSensor));
         }
     }
 
@@ -598,6 +583,9 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                         connectedToGatt = false;
                         invalidateOptionsMenu();
                         connectionStateString(StaticResources.STATE_DISCONNECTED);
+
+                        //ReStart listening of device sensors
+                        registerListenerSensor();
                     }
                     break;
                 //this received broadcast lets the activity that subbed to this intent filter know which is the characteristic that has changed
