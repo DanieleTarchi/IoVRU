@@ -6,19 +6,19 @@
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar_available_devices"
+        android:id="@+id/toolbar_connected_devices"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:title="Available Devices"/>
+        app:title="Connected Devices"/>
 
     <ListView
         android:id="@+id/listView1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/toolbar_available_devices"
+        android:layout_below="@id/toolbar_connected_devices"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="-1dp"

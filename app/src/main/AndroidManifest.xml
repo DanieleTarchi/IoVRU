@@ -29,7 +29,7 @@
             android:name=".ReceivedData"
             android:exported="true" />
         <activity
-            android:name=".AvailableDevices"
+            android:name=".ConnectedDevices"
             android:exported="true" />
 
         <service

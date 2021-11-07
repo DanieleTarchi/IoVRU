@@ -33,7 +33,7 @@
         android:title="@string/toolbar_sensors_rssi"
         app:showAsAction="never"/>
 
-    <item android:id="@+id/action_devices_connected"
+    <item android:id="@+id/action_connected_devices"
         android:title="Connected Devices"
         app:showAsAction="never"/>
 
