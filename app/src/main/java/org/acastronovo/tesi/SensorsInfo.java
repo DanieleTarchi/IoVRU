@@ -369,6 +369,10 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 }
                 return true;
 
+            case (R.id.action_connected_devices):
+                startActivity(new Intent(this, ConnectedDevices.class));
+                return true;
+
             case (R.id.action_settings):
                 startActivity(new Intent(this, Settings.class));
                 return true;

@@ -1,15 +1,20 @@
 package org.acastronovo.tesi;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import android.os.Bundle;
 
+import android.content.Intent;
+
 import java.util.ArrayList;
+
+import android.view.View;
 
 import android.widget.ArrayAdapter;
 
 import android.widget.ListView;
+
+import android.widget.AdapterView;
 
 public class ConnectedDevices extends AppCompatActivity {
 
@@ -18,7 +23,7 @@ public class ConnectedDevices extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connected_devices);
 
-            // definisco un array di stringhe
+        // definisco un array di stringhe
             String[] namedevices = new String[]{"Product1", "Product2"};
 
             // definisco un ArrayList
@@ -36,6 +41,16 @@ public class ConnectedDevices extends AppCompatActivity {
             // inietto i dati
             mylist.setAdapter(adapter);
 
-        }
+            mylist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adattatore, final View componente, int pos, long id){
+
+                Intent intent=new Intent(this, ReceivedData.class);
+                startActivity(intent);
+
+                }
+            });
+
+    }
 
 }

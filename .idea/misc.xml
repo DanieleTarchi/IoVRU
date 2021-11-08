@@ -9,9 +9,10 @@
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/drawable/device_background.xml" value="0.1945" />
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/drawable/gps_vector.xml" value="0.1945" />
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/drawable/humidity_vector.xml" value="0.1945" />
-        <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_about_web_view.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_about_web_view.xml" value="0.22" />
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_adapter_info.xml" value="0.25" />
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_available_devices.xml" value="0.25" />
+        <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_connected_devices.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_graph_rssi.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_main.xml" value="0.22" />
         <entry key="..\:/Users/USER/Desktop/Università/Tesi/TESI/app/src/main/res/layout/activity_received_data.xml" value="0.25" />
