@@ -361,7 +361,6 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 return true;
 
             case (R.id.action_mqtt):
-                Toast.makeText(this, "Sending data to remote clients", Toast.LENGTH_SHORT).show();
                 mqttService = new Intent(this, MqttService.class);
                 //Pass object at MqttService activity
                 mqttService.putExtra(StaticResources.EXTRA_LOCATION, position);

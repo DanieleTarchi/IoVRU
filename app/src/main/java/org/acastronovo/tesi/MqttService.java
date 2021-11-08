@@ -39,12 +39,13 @@ import java.nio.charset.StandardCharsets;
 public class MqttService extends Service {
 
     String TAG = "MqttService";
-    MqttAsyncClient client;
+    MqttAndroidClient client;
     //test variables
     private final String serverUri = "tcp://192.168.1.17:1883";
     private final String user = "cPanel";
     private final String pwd = "test";
     private MemoryPersistence persistance;
+    boolean connectedToBroker = false;
 
     String temp;
     String heartBeat;
@@ -72,28 +73,40 @@ public class MqttService extends Service {
         registerReceiver(bleBroadcastReceiver, intentFilter);
 
         String clientId = MqttClient.generateClientId();
-
-        //client = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
-
+        client = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
 
         try {
             MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
             mqttConnectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
             mqttConnectOptions.setCleanSession(true);
             mqttConnectOptions.setAutomaticReconnect(true);
-            mqttConnectOptions.setUserName(user);
-            mqttConnectOptions.setPassword(pwd.toCharArray());
-            client = new MqttAsyncClient(serverUri, clientId, persistance);
-            client.connect(mqttConnectOptions);
-            try {
-                Thread.sleep(5000);
-            } catch (Exception e){
-                e.printStackTrace();
-            }
+            //mqttConnectOptions.setUserName(user);
+            //mqttConnectOptions.setPassword(pwd.toCharArray());
+            IMqttToken token = client.connect(mqttConnectOptions);
+
+            token.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // We are connected
+                    Log.d(TAG, "onSuccess");
+                    System.out.println("CONNECTED_WITH_RASPBERRY");
+                    connectedToBroker = true;
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // Something went wrong e.g. connection timeout or firewal
+                    Log.d(TAG, "onFailure");
+                    System.out.println("FAILURE_WITH_RASPBERRY");
+                    connectedToBroker = false;
+                }
+            });
+
             client.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable cause) {
                     Log.e(TAG, "Connection Lost");
+                    //connectedToBroker = false;
                 }
 
                 @Override
@@ -107,9 +120,6 @@ public class MqttService extends Service {
                     Log.e(TAG, "Delivery Complete");
                 }
             });
-
-            client.connect(mqttConnectOptions);
-
         }  catch (MqttException ex){
             ex.printStackTrace();
         }
@@ -147,55 +157,60 @@ public class MqttService extends Service {
         System.out.println("ALTITUDE: " + altitudeValueSensor);
         System.out.println("PEDOMETER: " + stepDetect);*/
 
-        //this is checking if the user has fired the sos
-        if(sos_on){
-            try {
-                pub(StaticResources.SOS_TOPIC, jsonSoS(position).toString(), StaticResources.QOS_2);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        } else {
+        if(connectedToBroker){
+            Toast.makeText(this, "Sending data to remote clients", Toast.LENGTH_SHORT).show();
+            //this is checking if the user has fired the sos
+            if(sos_on){
+                try {
+                    pub(StaticResources.SOS_TOPIC, jsonSoS(position).toString(), StaticResources.QOS_2);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
 
-            if(stepDetect != -1){
-                String stepDetectString = String.valueOf(stepDetect);
-                pub(StaticResources.PEDOMETER_SENSOR_TOPIC, stepDetectString, StaticResources.QOS_0);
-            }
+                if(stepDetect != -1){
+                    String stepDetectString = String.valueOf(stepDetect);
+                    pub(StaticResources.PEDOMETER_SENSOR_TOPIC, stepDetectString, StaticResources.QOS_0);
+                }
 
-            if(connectedToGatt){
-                if(temp != null)
-                    pub(StaticResources.TEMP_TOPIC, temp, StaticResources.QOS_0);
-                if(humidity != null)
-                    pub(StaticResources.HUMIDITY_TOPIC, humidity, StaticResources.QOS_0);
-                if(pressure != null)
-                    pub(StaticResources.PRESSURE_TOPIC, pressure, StaticResources.QOS_0);
-                if(altitude != null)
-                    pub(StaticResources.ALTITUDE_TOPIC, altitude, StaticResources.QOS_0);
-                if(position != null)
-                    pub(StaticResources.GPS_TOPIC, position, StaticResources.QOS_0);
-            } else{
-                if(tempValueSensor != -999){
-                    String tempValueSensorString = String.valueOf(tempValueSensor);
-                    pub(StaticResources.TEMP_SENSOR_TOPIC, tempValueSensorString, StaticResources.QOS_0);
-                }
-                if(humidityValueSensor != -1);{
-                    String humidityValueSensorString = String.valueOf(humidityValueSensor);
-                    pub(StaticResources.HUMIDITY_SENSOR_TOPIC, humidityValueSensorString, StaticResources.QOS_0);
-                }
-                if(pressureValueSensor != 0){
-                    String pressureValueSensorString = String.valueOf(pressureValueSensor);
-                    pub(StaticResources.PRESSURE_SENSOR_TOPIC, pressureValueSensorString, StaticResources.QOS_0);
-                }
-                if(altitudeValueSensor != 9999){
-                    String altitudeValueSensorString = String.valueOf(altitudeValueSensor);
-                    pub(StaticResources.ALTITUDE_SENSOR_TOPIC, altitudeValueSensorString, StaticResources.QOS_0);
-                }
-                if(locationPermission && latitude != 360 && longitude != 360){
-                    String positionString = String.valueOf(latitude);
-                    pub(StaticResources.LATITUDE_TOPIC, positionString, StaticResources.QOS_0);
-                    positionString = String.valueOf(longitude);
-                    pub(StaticResources.LONGITUDE_TOPIC, positionString, StaticResources.QOS_0);
+                if(connectedToGatt){
+                    if(temp != null)
+                        pub(StaticResources.TEMP_TOPIC, temp, StaticResources.QOS_0);
+                    if(humidity != null)
+                        pub(StaticResources.HUMIDITY_TOPIC, humidity, StaticResources.QOS_0);
+                    if(pressure != null)
+                        pub(StaticResources.PRESSURE_TOPIC, pressure, StaticResources.QOS_0);
+                    if(altitude != null)
+                        pub(StaticResources.ALTITUDE_TOPIC, altitude, StaticResources.QOS_0);
+                    if(position != null)
+                        pub(StaticResources.GPS_TOPIC, position, StaticResources.QOS_0);
+                } else{
+                    if(tempValueSensor != -999){
+                        String tempValueSensorString = String.valueOf(tempValueSensor);
+                        pub(StaticResources.TEMP_SENSOR_TOPIC, tempValueSensorString, StaticResources.QOS_0);
+                    }
+                    if(humidityValueSensor != -1);{
+                        String humidityValueSensorString = String.valueOf(humidityValueSensor);
+                        pub(StaticResources.HUMIDITY_SENSOR_TOPIC, humidityValueSensorString, StaticResources.QOS_0);
+                    }
+                    if(pressureValueSensor != 0){
+                        String pressureValueSensorString = String.valueOf(pressureValueSensor);
+                        pub(StaticResources.PRESSURE_SENSOR_TOPIC, pressureValueSensorString, StaticResources.QOS_0);
+                    }
+                    if(locationPermission && altitudeValueSensor != 9999){
+                        String altitudeValueSensorString = String.valueOf(altitudeValueSensor);
+                        pub(StaticResources.ALTITUDE_SENSOR_TOPIC, altitudeValueSensorString, StaticResources.QOS_0);
+                    }
+                    if(locationPermission && latitude != 360 && longitude != 360){
+                        String positionString = String.valueOf(latitude);
+                        pub(StaticResources.LATITUDE_TOPIC, positionString, StaticResources.QOS_0);
+                        positionString = String.valueOf(longitude);
+                        pub(StaticResources.LONGITUDE_TOPIC, positionString, StaticResources.QOS_0);
+                    }
                 }
             }
+        } else{
+            Toast.makeText(this, "Failure connection to broker", Toast.LENGTH_SHORT).show();
         }
 
         return super.onStartCommand(intent, flags, startId);
