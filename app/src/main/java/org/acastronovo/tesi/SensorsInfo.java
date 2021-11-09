@@ -212,7 +212,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         //I need this so that when the app starts it knows which is the stored value of this preference
         emergencyBoolean = preferences.getBoolean("emergency_checkbox", true);
-        userName.setText(preferences.getString("user_name", "set you username"));
+        userName.setText(preferences.getString("user_name", "set your username"));
         preferences.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
@@ -221,16 +221,16 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                         emergencyBoolean = sharedPreferences.getBoolean("emergency_checkbox", false);
                         break;
                     case "user_name":
-                        user.setName(sharedPreferences.getString("user_name", "Cristian"));
+                        user.setName(sharedPreferences.getString("user_name", "User"));
                         userName.setText(user.getName());
                         break;
                 }
             }
         });
 
-        user.setGender(preferences.getString("user_gender", "Male"));
-        user.setAge(preferences.getString("user_age", "23"));
-        user.setWeight(preferences.getString("user_weight", "85"));
+        user.setGender(preferences.getString("user_gender", "gender"));
+        user.setAge(preferences.getString("user_age", "age"));
+        user.setWeight(preferences.getString("user_weight", "weight"));
 
     }
 
