@@ -44,11 +44,10 @@ public class ConnectedDevices extends AppCompatActivity {
             mylist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adattatore, final View componente, int pos, long id){
-
-                Intent intent=new Intent(this, ReceivedData.class);
+                final Intent intent = new Intent(ConnectedDevices.this, ReceivedData.class);
                 startActivity(intent);
+            }
 
-                }
             });
 
     }
