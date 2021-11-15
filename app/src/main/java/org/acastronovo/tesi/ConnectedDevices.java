@@ -82,7 +82,7 @@ public class ConnectedDevices extends AppCompatActivity {
 
 
         // definisco un array di stringhe
-            String[] namedevices = new String[]{};
+            String[] namedevices = new String[]{clientId};
 
             // definisco un ArrayList
             final ArrayList<String> listp = new ArrayList<String>();
