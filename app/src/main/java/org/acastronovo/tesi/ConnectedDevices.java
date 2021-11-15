@@ -26,6 +26,7 @@ import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -37,52 +38,51 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class ConnectedDevices extends AppCompatActivity {
 
+    MqttAsyncClient client;
+    String TAG = "MqttService";
+    private final String serverUri = "tcp://192.168.1.1883";
+    private final String user = "Device";
+    private final String pwd = "pass";
+    private MemoryPersistence persistance;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connected_devices);
 
+        String clientId = MqttClient.generateClientId();
 
-        public class MqttService extends Service {
-            MqttAndroidClient client;
+        try {
+            MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+            mqttConnectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
+            mqttConnectOptions.setCleanSession(true);
+            mqttConnectOptions.setAutomaticReconnect(true);
+            mqttConnectOptions.setUserName(user);
+            mqttConnectOptions.setPassword(pwd.toCharArray());
+            client = new MqttAsyncClient(serverUri, clientId, persistance);
+            IMqttToken token = client.connect(mqttConnectOptions);
 
-            final String TAG = "MQTTService";
-            private final String serverUri = "tcp://192.168.1.1883";
-            private MemoryPersistence persistance;
-
-            public void onCreate() {
-                super.onCreate();
-                String clientId = MqttClient.generateClientId();
-                client = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
-                try {
-                    MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-                    mqttConnectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
-                    mqttConnectOptions.setCleanSession(true);
-                    mqttConnectOptions.setAutomaticReconnect(true);
-                    IMqttToken token = client.connect(mqttConnectOptions);
-
-                    token.setActionCallback(new IMqttActionListener() {
-                        @Override
-                        public void onSuccess(IMqttToken asyncActionToken) {
-                            // We are connected
-                            Log.d(TAG, "onSuccess");
-                        }
-
-                        @Override
-                        public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                            // Something went wrong e.g. connection timeout or firewal
-                            Log.d(TAG, "onFailure");
-                        }
-                    });
-                }catch (MqttException ex){
-                    ex.printStackTrace();
+            token.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // We are connected
+                    Log.d(TAG, "onSuccess");
                 }
-            }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // Something went wrong e.g. connection timeout or firewal
+                    Log.d(TAG, "onFailure");
+                }
+            });
+        }catch (MqttException ex){
+            ex.printStackTrace();
         }
 
 
         // definisco un array di stringhe
-            String[] namedevices = new String[]{"Product1", "Product2"};
+            String[] namedevices = new String[]{};
 
             // definisco un ArrayList
             final ArrayList<String> listp = new ArrayList<String>();
