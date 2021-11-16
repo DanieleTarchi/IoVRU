@@ -93,8 +93,10 @@ public class ConnectedDevices extends AppCompatActivity {
         }
 
 
-        // definisco un array di stringhe
-            String[] namedevices = new String[]{clientId};
+            //definisco un array di stringhe
+            //Per aggiungere un device collegato al broker e vederlo stampato a video basta scrivere
+            //nell'array una stringa con il nome del dispositivo
+            String[] namedevices = new String[]{"SM-G950F"};
 
             // definisco un ArrayList
             final ArrayList<String> listp = new ArrayList<String>();
