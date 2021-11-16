@@ -54,8 +54,7 @@ public class ReceivedData extends AppCompatActivity {
     MqttAsyncClient client;
     String TAG = "MqttService";
 
-    String topic = "  ";
-    int qos = 0;
+
 
 
     @Override
@@ -69,8 +68,8 @@ public class ReceivedData extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         //UI
-        temperature= findViewById(R.id.temperature);
-        heartbeat= findViewById(R.id.heartbeat);
+        temperature = findViewById(R.id.temperature);
+        heartbeat = findViewById(R.id.heartbeat);
         humidity = findViewById(R.id.humidity);
         position = findViewById(R.id.position);
         altitude = findViewById(R.id.altitude);
@@ -78,32 +77,33 @@ public class ReceivedData extends AppCompatActivity {
         pedometer = findViewById(R.id.pedometer);
         calories = findViewById(R.id.calories);
 
-        Intent intent= getIntent();
-        String client=intent.get(ConnectedDevices.client);
 
-        try {
-            IMqttToken subToken = client.subscribe(topic, qos);
-            subToken.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    // The message was published
-                    Log.d(TAG, "The message was published");
-                }
 
-                @Override
-                public void onFailure(IMqttToken asyncActionToken,
-                                      Throwable exception) {
-                    // The subscription could not be performed, maybe the user was not
-                    // authorized to subscribe on the specified topic e.g. using wildcards
-                    Log.d(TAG, "The subscription could not be performed");
-                }
-            });
-        } catch (MqttException e) {
-            e.printStackTrace();
+
+
+
+        void sub(String topic, int qos){
+
+            try {
+                IMqttToken subToken = client.subscribe(topic, qos);
+                subToken.setActionCallback(new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        //The message was published
+                        Log.d(TAG, "The message was published");
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken,
+                                          Throwable exception) {
+                        //The subscription could not be performed, maybe the user was not
+                        // authorized to subscribe on the specified topic e.g. using wildcards
+                        Log.d(TAG, "The subscription could not be performed");
+                    }
+                });
+            } catch (MqttException e) {
+                e.printStackTrace();
+            }
         }
-
-
-
-
     }
 }
