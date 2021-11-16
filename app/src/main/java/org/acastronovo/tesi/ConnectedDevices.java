@@ -3,29 +3,18 @@ package org.acastronovo.tesi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-
 import android.content.Intent;
-
 import java.util.ArrayList;
-
 import android.view.View;
-
 import android.widget.ArrayAdapter;
-
 import android.widget.ListView;
-
 import android.widget.AdapterView;
-
 import android.app.Service;
-
 import android.util.Log;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
-
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-
 import org.eclipse.paho.client.mqttv3.IMqttToken;
-
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;

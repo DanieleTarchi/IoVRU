@@ -26,6 +26,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.internal.Token;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -77,11 +78,12 @@ public class ReceivedData extends AppCompatActivity {
         pedometer = findViewById(R.id.pedometer);
         calories = findViewById(R.id.calories);
 
+        sub(topic_temp, qos);
 
 
 
 
-
+        //this handles the receiving of the messages
         void sub(String topic, int qos){
 
             try {
