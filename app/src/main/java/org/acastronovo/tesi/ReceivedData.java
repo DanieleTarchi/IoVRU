@@ -59,7 +59,7 @@ public class ReceivedData extends AppCompatActivity {
     private MemoryPersistence persistance;
 
 
-    String topic = "";
+    String topic = "testTemperature";
     int qos = 0;
 
 
@@ -144,13 +144,12 @@ public class ReceivedData extends AppCompatActivity {
                         Log.d(TAG, "The subscription could not be performed");
                     }
                 });
-
             } catch (MqttException e) {
                 e.printStackTrace();
             }
 
 
-        temperature.setText("Temperature" + );
+        temperature.setText("Temperature: " + );
         heartbeat.setText("Heartbeat" + );
         humidity.setText("Humidity" + );
         position.setText("Position" + );
