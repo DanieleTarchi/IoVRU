@@ -28,7 +28,6 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Temperature\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
@@ -40,7 +39,6 @@
             android:layout_marginTop="5dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Heartbeat\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
@@ -52,7 +50,6 @@
             android:layout_marginTop="5dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Humidity\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
@@ -64,7 +61,6 @@
             android:layout_marginTop="5dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Position\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
@@ -76,7 +72,6 @@
             android:layout_marginTop="5dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Altitude\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
@@ -88,7 +83,6 @@
             android:layout_marginTop="5dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Pressure\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
@@ -100,7 +94,6 @@
             android:layout_marginTop="5dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Pedometer\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
@@ -112,7 +105,6 @@
             android:layout_marginTop="5dp"
             android:layout_marginBottom="7dp"
             android:textColor="@color/primary_text"
-            android:text="Calories\n"
             android:textSize="16sp"/>
 
         <View style="@style/divider"/>
