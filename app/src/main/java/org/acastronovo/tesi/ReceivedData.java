@@ -53,7 +53,7 @@ public class ReceivedData extends AppCompatActivity {
 
     MqttAsyncClient client;
     String TAG = "MqttService";
-    private final String serverUri = "tcp://192.168.1.1883";
+    private final String serverUri = "tcp://192.168.1.3:1883";
     private final String user = "alberto";
     private final String pwd = "1708";
     private MemoryPersistence persistance;
@@ -146,9 +146,9 @@ public class ReceivedData extends AppCompatActivity {
                 });
 
             } catch (MqttException e) {
-                System.out.println("Temperature is " + e.getMessage());
                 e.printStackTrace();
             }
+
 
         temperature.setText("Temperature" + );
         heartbeat.setText("Heartbeat" + );
