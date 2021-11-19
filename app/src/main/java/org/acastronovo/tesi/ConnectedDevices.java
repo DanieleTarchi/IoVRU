@@ -1,7 +1,6 @@
 package org.acastronovo.tesi;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.content.Intent;
 import java.util.ArrayList;
@@ -9,20 +8,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.AdapterView;
-import android.app.Service;
-import android.util.Log;
-
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import android.widget.AdapterView.OnItemClickListener;
 
 
 public class ConnectedDevices extends AppCompatActivity {
@@ -35,7 +21,7 @@ public class ConnectedDevices extends AppCompatActivity {
             //definisco un array di stringhe
             //Per aggiungere un device collegato al broker e vederlo stampato a video è sufficiente
             //scrivere nell'array una stringa con il nome del dispositivo
-            String[] namedevices = new String[]{"SM-G950F"};
+            String[] namedevices = new String[]{"SM-G950F", "tablet"};
 
             // definisco un ArrayList
             final ArrayList<String> listp = new ArrayList<String>();

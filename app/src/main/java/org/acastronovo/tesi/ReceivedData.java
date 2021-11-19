@@ -4,20 +4,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.os.Bundle;
-import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.IBinder;
-import android.os.Message;
+import android.widget.AdapterView.OnItemClickListener;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -26,20 +22,16 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.internal.wire.MqttSubscribe;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.internal.Token;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.nio.charset.StandardCharsets;
+import java.lang.String;
 import java.util.Objects;
 
 public class ReceivedData extends AppCompatActivity {
-
-    //Toolbar
-    Toolbar toolbar;
 
     //UI
     TextView temperature;
@@ -52,14 +44,14 @@ public class ReceivedData extends AppCompatActivity {
     TextView calories;
 
     MqttAsyncClient client;
-    String TAG = "MqttService";
+    String TAG = "ReceivedData";
     private final String serverUri = "tcp://192.168.1.3:1883";
     private final String user = "alberto";
     private final String pwd = "1708";
     private MemoryPersistence persistance;
 
 
-    String topic = "testTemperature";
+    private String topic;
     int qos = 0;
 
 
@@ -68,10 +60,6 @@ public class ReceivedData extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_received_data);
 
-        //Toolbar
-        toolbar = findViewById(R.id.toolbar_received_data);
-        setSupportActionBar(toolbar);
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         //UI
         temperature = findViewById(R.id.temperature);
@@ -82,7 +70,6 @@ public class ReceivedData extends AppCompatActivity {
         pressure = findViewById(R.id.pressure);
         pedometer = findViewById(R.id.pedometer);
         calories = findViewById(R.id.calories);
-
 
 
         String clientId = MqttClient.generateClientId();
@@ -127,6 +114,7 @@ public class ReceivedData extends AppCompatActivity {
         }
 
 
+
         try {
             IMqttToken subToken = client.subscribe(topic, qos);
             subToken.setActionCallback(new IMqttActionListener() {
@@ -143,19 +131,35 @@ public class ReceivedData extends AppCompatActivity {
                     // authorized to subscribe on the specified topic e.g. using wildcards
                         Log.d(TAG, "The subscription could not be performed");
                     }
+
                 });
             } catch (MqttException e) {
                 e.printStackTrace();
             }
 
 
-        temperature.setText("Temperature: " + );
-        heartbeat.setText("Heartbeat" + );
-        humidity.setText("Humidity" + );
-        position.setText("Position" + );
-        altitude.setText("Altitude" + );
-        pressure.setText("Pressure" + );
-        pedometer.setText("Pedometer" + );
-        calories.setText("Calories" + );
+
+        client.setCallback(new MqttCallback() {
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                String str1 = new String(message.getPayload());
+                //temperature.setText("Temperature: " +  str1);
+                Log.i(TAG, "messageArrived:" + str1);
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken arg0) {
+
+            }
+
+            @Override
+            public void connectionLost(Throwable arg0) {
+                //  Lost connection, reconnection
+            }
+        });
+
+
+
     }
 }
