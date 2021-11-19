@@ -3,13 +3,8 @@ package org.acastronovo.tesi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.os.Bundle;
-import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.widget.AdapterView.OnItemClickListener;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -29,7 +24,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.internal.Token;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import java.lang.String;
-import java.util.Objects;
+
 
 public class ReceivedData extends AppCompatActivity {
 
@@ -54,12 +49,10 @@ public class ReceivedData extends AppCompatActivity {
     private String topic;
     int qos = 0;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_received_data);
-
 
         //UI
         temperature = findViewById(R.id.temperature);
@@ -113,8 +106,6 @@ public class ReceivedData extends AppCompatActivity {
             ex.printStackTrace();
         }
 
-
-
         try {
             IMqttToken subToken = client.subscribe(topic, qos);
             subToken.setActionCallback(new IMqttActionListener() {
@@ -122,20 +113,20 @@ public class ReceivedData extends AppCompatActivity {
                 public void onSuccess(IMqttToken asyncActionToken) {
                     //The message was published
                     Log.d(TAG, "The message was published");
-                    }
+                }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
 
                     //The subscription could not be performed, maybe the user was not
                     // authorized to subscribe on the specified topic e.g. using wildcards
-                        Log.d(TAG, "The subscription could not be performed");
-                    }
+                    Log.d(TAG, "The subscription could not be performed");
+                }
 
-                });
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
 
 
 
