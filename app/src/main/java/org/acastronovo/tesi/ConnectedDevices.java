@@ -21,7 +21,7 @@ public class ConnectedDevices extends AppCompatActivity {
             //definisco un array di stringhe
             //Per aggiungere un device collegato al broker e vederlo stampato a video è sufficiente
             //scrivere nell'array una stringa con il nome del dispositivo
-            String[] namedevices = new String[]{"SM-G950F", "tablet"};
+            String[] namedevices = new String[]{"SM-G950F", "SM-T815"};
 
             // definisco un ArrayList
             final ArrayList<String> listp = new ArrayList<String>();
@@ -33,7 +33,8 @@ public class ConnectedDevices extends AppCompatActivity {
             final ListView mylist = (ListView) findViewById(R.id.listView1);
 
             // creo e istruisco l'adattatore
-            final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, listp);
+            final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_list_item_1, listp);
 
             // inietto i dati
             mylist.setAdapter(adapter);
