@@ -20,7 +20,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.internal.wire.MqttSubscribe;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.internal.Token;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import java.lang.String;
@@ -40,13 +39,14 @@ public class ReceivedData extends AppCompatActivity {
 
     MqttAsyncClient client;
     String TAG = "ReceivedData";
-    private final String serverUri = "tcp://192.168.1.3:1883";
+    private final String serverUri = "tcp://192.168.1.4:1883";
     private final String user = "alberto";
     private final String pwd = "1708";
     private MemoryPersistence persistance;
 
 
-    private String topic;
+    private String topic = "testTemp";
+    MqttMessage message;
     int qos = 0;
 
     @Override
@@ -65,6 +65,11 @@ public class ReceivedData extends AppCompatActivity {
         calories = findViewById(R.id.calories);
 
 
+        connect();
+
+    }
+
+    private void connect () {
         String clientId = MqttClient.generateClientId();
 
         try {
@@ -77,80 +82,46 @@ public class ReceivedData extends AppCompatActivity {
             mqttConnectOptions.setPassword(pwd.toCharArray());
             IMqttToken token = client.connect(mqttConnectOptions);
 
-            try{
+            try {
                 Thread.sleep(5000);
-            }catch (Exception e){
+            } catch (Exception e) {
+                Log.d(TAG, "inutile");
                 e.printStackTrace();
             }
 
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.e(TAG, "Connection Lost");
-                }
+            Log.d(TAG, "eseguita la prima parte");
 
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    Log.e(TAG, "Message arrived");
-                }
+            sub();
 
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.e(TAG, "Delivery Complete");
-                }
-            });
 
-            token = client.connect(mqttConnectOptions);
-
-        }catch (MqttException ex){
-            ex.printStackTrace();
+        } catch (MqttException e) {
+            Log.d(TAG, "sei dentro il primo catch");
+            e.printStackTrace();
         }
+    }
 
+    private void sub () {
         try {
-            IMqttToken subToken = client.subscribe(topic, qos);
-            subToken.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    //The message was published
-                    Log.d(TAG, "The message was published");
-                }
+            client.subscribe(topic, qos);
+            Log.d(TAG, "eseguita la seconda parte");
 
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
 
-                    //The subscription could not be performed, maybe the user was not
-                    // authorized to subscribe on the specified topic e.g. using wildcards
-                    Log.d(TAG, "The subscription could not be performed");
-                }
 
-            });
+
+
         } catch (MqttException e) {
             e.printStackTrace();
         }
-
-
-
-        client.setCallback(new MqttCallback() {
-
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-                String str1 = new String(message.getPayload());
-                //temperature.setText("Temperature: " +  str1);
-                Log.i(TAG, "messageArrived:" + str1);
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken arg0) {
-
-            }
-
-            @Override
-            public void connectionLost(Throwable arg0) {
-                //  Lost connection, reconnection
-            }
-        });
-
-
-
     }
+
+
+
+
+
+
+
+
+
+
+
 }
