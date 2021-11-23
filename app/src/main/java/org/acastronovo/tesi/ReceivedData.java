@@ -67,104 +67,102 @@ public class ReceivedData extends AppCompatActivity {
 
     }
 
-        private void connect () {
-            String clientId = MqttClient.generateClientId();
+    private void connect () {
+        String clientId = MqttClient.generateClientId();
+
+        try {
+            MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+            mqttConnectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
+            mqttConnectOptions.setCleanSession(true);
+            mqttConnectOptions.setAutomaticReconnect(true);
+            mqttConnectOptions.setUserName(user);
+            mqttConnectOptions.setPassword(pwd.toCharArray());
+            client = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
+            IMqttToken token = client.connect(mqttConnectOptions);
 
             try {
-                MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-                mqttConnectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
-                mqttConnectOptions.setCleanSession(true);
-                mqttConnectOptions.setAutomaticReconnect(true);
-                mqttConnectOptions.setUserName(user);
-                mqttConnectOptions.setPassword(pwd.toCharArray());
-                client = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
-                IMqttToken token = client.connect(mqttConnectOptions);
+                Thread.sleep(5000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-                try {
-                    Thread.sleep(5000);
-                } catch (Exception e) {
-                    e.printStackTrace();
+            token.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // We are connected
+                    Log.d(TAG, "onSuccess");
+                    sub();
                 }
 
-                token.setActionCallback(new IMqttActionListener() {
-                    @Override
-                    public void onSuccess(IMqttToken asyncActionToken) {
-                        // We are connected
-                        Log.d(TAG, "onSuccess");
-                        sub();
-                    }
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // Something went wrong e.g. connection timeout or firewall problems
+                    Log.d(TAG, "onFailure");
 
-                    @Override
-                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                        // Something went wrong e.g. connection timeout or firewall problems
-                        Log.d(TAG, "onFailure");
-
-                    }
-                });
+                }
+            });
 
 
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
+        } catch (MqttException e) {
+            e.printStackTrace();
         }
+    }
 
-        private void sub () {
-            try {
-                client.subscribe("testTemp", qos);
+    private void sub () {
+        try {
+            client.subscribe("testTemp", qos);
 
-                client.setCallback(new MqttCallback() {
-                    @Override
-                    public void connectionLost(Throwable cause) {
-                        Log.d(TAG, "Connection Lost");
-                    }
+            client.setCallback(new MqttCallback() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    Log.d(TAG, "Connection Lost");
+                }
 
-                    @Override
-                    public void messageArrived(String topic, MqttMessage message) throws Exception {
-                        String str1 = new String(message.getPayload());
-                        Log.d(TAG, "messaggio arrivato");
-                        temperature.setText("Temperature: " + str1 + " °C");
-                        suba();
-                    }
+                @Override
+                public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    String str1 = new String(message.getPayload());
+                    temperature.setText("Temperature: " + str1 + "°C");
+                    suba();
+                }
 
-                    @Override
-                    public void deliveryComplete(IMqttDeliveryToken token) {
-                        Log.d(TAG, "Delivery Complete");
-                    }
-                });
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                    Log.d(TAG, "Delivery Complete");
+                }
+            });
 
-            } catch (MqttException e) {
-                Log.d(TAG, "sono dentro il secondo catch");
-                e.printStackTrace();
-            }
+        } catch (MqttException e) {
+            e.printStackTrace();
         }
+    }
 
-        private void suba () {
-            try {
-                client.subscribe("testHeart", qos);
+    private void suba () {
+        try {
+            client.subscribe("testHeart", qos);
 
-                client.setCallback(new MqttCallback() {
-                    @Override
-                    public void connectionLost(Throwable cause) {
-                        Log.d(TAG, "Connection Lost");
-                    }
+            client.setCallback(new MqttCallback() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    Log.d(TAG, "Connection Lost");
+                }
 
-                    @Override
-                    public void messageArrived(String topic, MqttMessage message) throws Exception {
-                        String str2 = new String(message.getPayload());
-                        heartbeat.setText("Heartbeat: " + str2 + " Bpm");
-                        subb();
-                        }
+                @Override
+                public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    String str2 = new String(message.getPayload());
+                    heartbeat.setText("Heartbeat: " + str2 + " Bpm");
+                    subb();
+                }
 
-                    @Override
-                    public void deliveryComplete(IMqttDeliveryToken token) {
-                        Log.d(TAG, "Delivery Complete");
-                    }
-                });
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                    Log.d(TAG, "Delivery Complete");
+                }
+            });
 
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
+        } catch (MqttException e) {
+            e.printStackTrace();
         }
+    }
 
     private void subb () {
         try {
@@ -178,8 +176,8 @@ public class ReceivedData extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str2 = new String(message.getPayload());
-                    humidity.setText("Humidity: " + str2 + "%");
+                    String str3 = new String(message.getPayload());
+                    humidity.setText("Humidity: " + str3 + "%");
                     subc();
                 }
 
@@ -206,8 +204,8 @@ public class ReceivedData extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str2 = new String(message.getPayload());
-                    position.setText("Position: " + str2);
+                    String str4 = new String(message.getPayload());
+                    position.setText("Position: " + str4);
                     subd();
                 }
 
@@ -234,8 +232,8 @@ public class ReceivedData extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str2 = new String(message.getPayload());
-                    altitude.setText("Altitude: " + str2 + " m");
+                    String str5 = new String(message.getPayload());
+                    altitude.setText("Altitude: " + str5 + " m");
                     sube();
                 }
 
@@ -262,8 +260,8 @@ public class ReceivedData extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str2 = new String(message.getPayload());
-                    pressure.setText("Pressure: " + str2 + " Pa");
+                    String str6 = new String(message.getPayload());
+                    pressure.setText("Pressure: " + str6 + " hPa");
                     subf();
                 }
 
@@ -290,8 +288,8 @@ public class ReceivedData extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str2 = new String(message.getPayload());
-                    pedometer.setText("Pedometer: " + str2 + " Steps");
+                    String str7 = new String(message.getPayload());
+                    pedometer.setText("Pedometer: " + str7 + " Steps");
                     subg();
                 }
 
@@ -318,8 +316,8 @@ public class ReceivedData extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str2 = new String(message.getPayload());
-                    calories.setText("Calories: " + str2 + " Kcal");
+                    String str8 = new String(message.getPayload());
+                    calories.setText("Calories: " + str8 + " Kcal");
                 }
 
                 @Override
