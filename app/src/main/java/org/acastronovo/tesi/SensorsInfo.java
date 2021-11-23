@@ -366,6 +366,9 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 mqttService.putExtra(StaticResources.EXTRA_LOCATION, position);
                 mqttService.putExtra(StaticResources.EXTRA_CONNECTED_TO_GATT, connectedToGatt);
                 mqttService.putExtra(StaticResources.EXTRA_LOCATION_PERMISSION, locationPermission);
+                if(isStepSensorPresent){
+                    mqttService.putExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, stepDetect);
+                }
                 if(!connectedToGatt){
                     if(isAmbientTempPresent){
                         mqttService.putExtra(StaticResources.EXTRA_TEMP_VALUE_SENSOR, tempValueSensor);
@@ -378,11 +381,8 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                         mqttService.putExtra(StaticResources.EXTRA_LONGITUDE_VALUE_SENSOR, longitude);
                         mqttService.putExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, altitudeValueSensor);
                     }
-                    if(isPressureSensorPresent) {
+                    if(isPressureSensorPresent){
                         mqttService.putExtra(StaticResources.EXTRA_PRESSURE_VALUE_SENSOR, pressureValueSensor);
-                    }
-                    if(isStepSensorPresent){
-                        mqttService.putExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, stepDetect);
                     }
                 }
                 try {
@@ -398,7 +398,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
             case (R.id.action_about):
                 Intent aboutWebView = new Intent(SensorsInfo.this, AboutWebView.class);
-                aboutWebView.putExtra(StaticResources.WEB_PAGE, "https://github.com/CDOrtona/Tesi");
+                aboutWebView.putExtra(StaticResources.WEB_PAGE, "https://github.com/AndreaCastronovo/TESI");
                 startActivity(aboutWebView);
                 return true;
             default:
@@ -432,7 +432,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getCurrentLocation();
             } else {
-                altitudeValue.setText("Not Present without location");
+                altitudeValue.setText("Not Present \n without location");
                 //Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
@@ -479,7 +479,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
             menu.findItem(R.id.action_connect).setVisible(false);
             menu.findItem(R.id.action_disconnect).setVisible(true);
             menu.findItem(R.id.action_mqtt).setEnabled(true);
-            pedometerValue.setText(Integer.toString(0));
+            //pedometerValue.setText(Integer.toString(0));
             return true;
         } else if (!connectedToGatt) {
             menu.findItem(R.id.action_connect).setVisible(true);

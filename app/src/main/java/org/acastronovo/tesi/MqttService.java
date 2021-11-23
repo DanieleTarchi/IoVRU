@@ -200,7 +200,7 @@ public class MqttService extends Service {
                     String tempValueSensorString = String.valueOf(tempValueSensor);
                     pub(StaticResources.TEMP_SENSOR_TOPIC, tempValueSensorString, StaticResources.QOS_0);
                 }
-                if(humidityValueSensor != -1);{
+                if(humidityValueSensor != -1){
                     String humidityValueSensorString = String.valueOf(humidityValueSensor);
                     pub(StaticResources.HUMIDITY_SENSOR_TOPIC, humidityValueSensorString, StaticResources.QOS_0);
                 }
