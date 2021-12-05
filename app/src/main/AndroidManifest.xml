@@ -25,6 +25,13 @@
         android:theme="@style/AppTheme.NoActionBar"
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
+        <activity
+            android:name=".ReceivedData"
+            android:exported="true" />
+        <activity
+            android:name=".ConnectedDevices"
+            android:exported="true" />
+
         <service
             android:name=".MqttService"
             android:enabled="true"
