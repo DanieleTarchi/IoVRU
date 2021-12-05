@@ -39,9 +39,9 @@ public class ReceivedData extends AppCompatActivity {
 
     MqttAndroidClient client;
     String TAG = "ReceivedData";
-    private final String serverUri = "tcp://192.168.1.3:1883";
-    private final String user = "alberto";
-    private final String pwd = "1708";
+    private final String serverUri = "tcp://192.168.1.2:1883";
+    private final String user = "andrea";
+    private final String pwd = "1234";
     private MemoryPersistence persistance;
 
 
@@ -110,7 +110,7 @@ public class ReceivedData extends AppCompatActivity {
 
     private void sub () {
         try {
-            client.subscribe("testTemp", qos);
+            client.subscribe("sensorsDevice/temp", qos);
 
             client.setCallback(new MqttCallback() {
                 @Override
@@ -138,7 +138,7 @@ public class ReceivedData extends AppCompatActivity {
 
     private void suba () {
         try {
-            client.subscribe("testHeart", qos);
+            client.subscribe("HeartValue", qos);
 
             client.setCallback(new MqttCallback() {
                 @Override
@@ -166,7 +166,7 @@ public class ReceivedData extends AppCompatActivity {
 
     private void subb () {
         try {
-            client.subscribe("testHum", qos);
+            client.subscribe("sensorsDevice/humidity", qos);
 
             client.setCallback(new MqttCallback() {
                 @Override
@@ -222,7 +222,7 @@ public class ReceivedData extends AppCompatActivity {
 
     private void subd () {
         try {
-            client.subscribe("testAlt", qos);
+            client.subscribe("sensorsDevice/altitude", qos);
 
             client.setCallback(new MqttCallback() {
                 @Override
@@ -250,7 +250,7 @@ public class ReceivedData extends AppCompatActivity {
 
     private void sube () {
         try {
-            client.subscribe("testPres", qos);
+            client.subscribe("sensorsDevice/pressure", qos);
 
             client.setCallback(new MqttCallback() {
                 @Override
@@ -278,7 +278,7 @@ public class ReceivedData extends AppCompatActivity {
 
     private void subf () {
         try {
-            client.subscribe("testPed", qos);
+            client.subscribe("sensorsDevice/pedometer", qos);
 
             client.setCallback(new MqttCallback() {
                 @Override
@@ -306,7 +306,7 @@ public class ReceivedData extends AppCompatActivity {
 
     private void subg () {
         try {
-            client.subscribe("testCal", qos);
+            client.subscribe("Calories", qos);
 
             client.setCallback(new MqttCallback() {
                 @Override
