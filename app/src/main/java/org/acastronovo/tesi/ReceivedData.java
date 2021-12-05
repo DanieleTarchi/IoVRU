@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -44,6 +45,8 @@ public class ReceivedData extends AppCompatActivity {
     private final String pwd = "1234";
     private MemoryPersistence persistance;
 
+    private String latitude = "";
+    private String longitude = "";
 
     private String topic;
     int qos = 0;
@@ -91,14 +94,14 @@ public class ReceivedData extends AppCompatActivity {
                 public void onSuccess(IMqttToken asyncActionToken) {
                     // We are connected
                     Log.d(TAG, "onSuccess");
-                    sub();
+                    //Subscribe all topic to view messages
+                    createSub(client);
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                     // Something went wrong e.g. connection timeout or firewall problems
                     Log.d(TAG, "onFailure");
-
                 }
             });
 
@@ -108,10 +111,25 @@ public class ReceivedData extends AppCompatActivity {
         }
     }
 
-    private void sub () {
+    private void createSub(MqttAndroidClient client){
         try {
-            client.subscribe("sensorsDevice/temp", qos);
 
+            client.subscribe(StaticResources.PEDOMETER_SENSOR_TOPIC, qos);
+            //Subscribe topic from bluetooth
+            client.subscribe(StaticResources.TEMP_TOPIC,qos);
+            client.subscribe(StaticResources.HUMIDITY_TOPIC,qos);
+            client.subscribe(StaticResources.PRESSURE_TOPIC, qos);
+            client.subscribe(StaticResources.ALTITUDE_TOPIC,qos);
+            client.subscribe(StaticResources.GPS_TOPIC,qos);
+            //Subscribe topic from sensorsDevice
+            client.subscribe(StaticResources.TEMP_SENSOR_TOPIC,qos);
+            client.subscribe(StaticResources.HUMIDITY_SENSOR_TOPIC,qos);
+            client.subscribe(StaticResources.PRESSURE_SENSOR_TOPIC, qos);
+            client.subscribe(StaticResources.ALTITUDE_SENSOR_TOPIC,qos);
+            client.subscribe(StaticResources.LATITUDE_TOPIC,qos);
+            client.subscribe(StaticResources.LONGITUDE_TOPIC,qos);
+
+            //Start setCallback for client
             client.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable cause) {
@@ -120,9 +138,9 @@ public class ReceivedData extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str1 = new String(message.getPayload());
-                    temperature.setText("Temperature: " + str1 + "°C");
-                    suba();
+                    Log.d(TAG, "Message Arrived");
+                    String messageString = new String(message.getPayload());
+                    messageHandler(topic, messageString);
                 }
 
                 @Override
@@ -130,204 +148,72 @@ public class ReceivedData extends AppCompatActivity {
                     Log.d(TAG, "Delivery Complete");
                 }
             });
-
-        } catch (MqttException e) {
+        }catch (Exception e){
             e.printStackTrace();
         }
+
     }
 
-    private void suba () {
-        try {
-            client.subscribe("HeartValue", qos);
+    private void messageHandler(String topic, String message){
+        switch(topic){
+            case StaticResources.PEDOMETER_SENSOR_TOPIC:
+                pedometer.setText("Pedometer: " + message + " Steps");
+                return;
 
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.d(TAG, "Connection Lost");
+            case StaticResources.TEMP_TOPIC:
+                temperature.setText("Temperature: " + message + "°C");
+                return;
+
+            case StaticResources.HUMIDITY_TOPIC:
+                humidity.setText("Humidity: " + message + "%");
+                return;
+
+            case StaticResources.PRESSURE_TOPIC:
+                pressure.setText("Pressure: " + message + " hPa");
+                return;
+
+            case StaticResources.ALTITUDE_TOPIC:
+                altitude.setText("Altitude: " + message + " m");
+                return;
+
+            case StaticResources.GPS_TOPIC:
+                position.setText("Position: " + message);
+                return;
+
+            case StaticResources.TEMP_SENSOR_TOPIC:
+                temperature.setText("Temperature: " + message + "°C");
+                return;
+
+            case StaticResources.HUMIDITY_SENSOR_TOPIC:
+                humidity.setText("Humidity: " + message + "%");
+                return;
+
+            case StaticResources.PRESSURE_SENSOR_TOPIC:
+                pressure.setText("Pressure: " + message + " hPa");
+                return;
+
+            case StaticResources.ALTITUDE_SENSOR_TOPIC:
+                altitude.setText("Altitude: " + message + " m");
+                return;
+
+            case StaticResources.LATITUDE_TOPIC:
+                if(!longitude.equals("")){
+                    position.setText("Position: " + message + ", " + longitude);
+                    longitude = "";
+                }else{
+                    latitude = message;
                 }
+                return;
 
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str2 = new String(message.getPayload());
-                    heartbeat.setText("Heartbeat: " + str2 + " Bpm");
-                    subb();
+            case StaticResources.LONGITUDE_TOPIC:
+                if(!latitude.equals("")){
+                    position.setText("Position: " + latitude + ", " + message);
+                    latitude = "";
+                }else{
+                    longitude = message;
                 }
+                return;
 
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Delivery Complete");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void subb () {
-        try {
-            client.subscribe("sensorsDevice/humidity", qos);
-
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.d(TAG, "Connection Lost");
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str3 = new String(message.getPayload());
-                    humidity.setText("Humidity: " + str3 + "%");
-                    subc();
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Delivery Complete");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void subc () {
-        try {
-            client.subscribe("testPos", qos);
-
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.d(TAG, "Connection Lost");
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str4 = new String(message.getPayload());
-                    position.setText("Position: " + str4);
-                    subd();
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Delivery Complete");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void subd () {
-        try {
-            client.subscribe("sensorsDevice/altitude", qos);
-
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.d(TAG, "Connection Lost");
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str5 = new String(message.getPayload());
-                    altitude.setText("Altitude: " + str5 + " m");
-                    sube();
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Delivery Complete");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void sube () {
-        try {
-            client.subscribe("sensorsDevice/pressure", qos);
-
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.d(TAG, "Connection Lost");
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str6 = new String(message.getPayload());
-                    pressure.setText("Pressure: " + str6 + " hPa");
-                    subf();
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Delivery Complete");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void subf () {
-        try {
-            client.subscribe("sensorsDevice/pedometer", qos);
-
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.d(TAG, "Connection Lost");
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str7 = new String(message.getPayload());
-                    pedometer.setText("Pedometer: " + str7 + " Steps");
-                    subg();
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Delivery Complete");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void subg () {
-        try {
-            client.subscribe("Calories", qos);
-
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.d(TAG, "Connection Lost");
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String str8 = new String(message.getPayload());
-                    calories.setText("Calories: " + str8 + " Kcal");
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Delivery Complete");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
         }
     }
 
