@@ -50,10 +50,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
- *@author Cristian D'Ortona
+ *@author Cristian D'Ortona / Andrea Castronovo / Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *
@@ -63,6 +64,10 @@ import java.util.Objects;
 public class SensorsInfo extends AppCompatActivity implements SensorEventListener {
 
     private final String TAG = "SensorInfo";
+
+    //ask for phone call permissions
+    private final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 2;
+    private static final int REQUEST_CODE_LOCATION_PERMISSION = 1;
 
     //I initialize an object from the class ConnectToGattServer which handles the connection to the GATT server of the ESP32
     ConnectToGattServer connectToGattServer;
@@ -89,13 +94,26 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     TextView altitudeValue;
     TextView calories;
 
-    //location
-    FusedLocationProviderClient locationProviderClient;
-    ArrayList<Location> locationList;
-
     //sensors
     SensorManager sensorManager;
     Sensor pedometer;
+    Sensor temperature;
+    Sensor pressureSensor;
+    Sensor humiditySensor;
+    boolean isStepSensorPresent = false;
+    boolean isAmbientTempPresent = false;
+    boolean isPressureSensorPresent = false;
+    boolean isHumiditySensorPresent = false; //Init to false state to don't register/unreg listener if bluethoot activated
+    boolean locationPermission = false;
+    int stepDetect = 0; //To count step
+    float tempValueSensor = 0;
+    float pressureValueSensor = 0;
+    float humidityValueSensor = 0;
+    //float pressureAtSeaLevel = SensorManager.PRESSURE_STANDARD_ATMOSPHERE;
+    float altitudeValueSensor = 0;
+    float latitude;
+    float longitude;
+
 
     //Toolbar
     Toolbar toolbar;
@@ -147,13 +165,35 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         //calling the constructor in order to build a BluetoothAdaptor object
         connectToGattServer = new ConnectToGattServer(deviceAddress, this);
 
-        //location
-        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        locationList = new ArrayList<>();
-
         //built-in sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        /*  TO PRINT SENSOR LIST OF PHONE
+        String SensorList;
+        List<Sensor> deviceSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
+        for(int i = 1; i < deviceSensors.size(); i++){
+            SensorList = ("Sensor number: " + i + "\n"
+                    + "Sensor name: " + deviceSensors.get(i).getName() + "\n"
+                    + "Sensor type: " + deviceSensors.get(i).getStringType() + "\n"
+                    + "Sensor vendor: " + deviceSensors.get(i).getVendor() + "\n"
+                    + "Sensor version: "+ deviceSensors.get(i).getVersion()+ "\n" + "\n");
+            System.out.println(SensorList);
+        }*/
+
+        //Set sensor
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)) != null) {
+            //StepDetector sensor is present
+            pedometer = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+            isStepSensorPresent = true;
+            pedometerValue.setText("0.0");  //Initialization of pedometerValue
+            //Start listen event for pedometer
+            sensorManager.registerListener(this, pedometer, SensorManager.SENSOR_DELAY_NORMAL);
+        } else {
+            //StepDetector sensor is not present
+            pedometerValue.setText("Not Present");
+            isStepSensorPresent = false;
+        }
+        setSensor();
+        heartValue.setText("Not Present");//Init value of heart sensor, if connectedToGatt become true reset at value
 
 
         //here I'm specifying the intent filters I want to subscribe to in order to get their updates
@@ -172,7 +212,7 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         //I need this so that when the app starts it knows which is the stored value of this preference
         emergencyBoolean = preferences.getBoolean("emergency_checkbox", true);
-        userName.setText(preferences.getString("user_name", "set you username"));
+        userName.setText(preferences.getString("user_name", "set your username"));
         preferences.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
@@ -181,16 +221,16 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                         emergencyBoolean = sharedPreferences.getBoolean("emergency_checkbox", false);
                         break;
                     case "user_name":
-                        user.setName(sharedPreferences.getString("user_name", "Cristian"));
+                        user.setName(sharedPreferences.getString("user_name", "User"));
                         userName.setText(user.getName());
                         break;
                 }
             }
         });
 
-        user.setGender(preferences.getString("user_gender", "Male"));
-        user.setAge(preferences.getString("user_age", "23"));
-        user.setWeight(preferences.getString("user_weight", "85"));
+        user.setGender(preferences.getString("user_gender", "gender"));
+        user.setAge(preferences.getString("user_age", "age"));
+        user.setWeight(preferences.getString("user_weight", "weight"));
 
     }
 
@@ -198,10 +238,64 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     protected void onResume() {
         super.onResume();
         //userName.setText(user.getName());
-        locationUpdate();
+
+        //Location
+        accessLocation();
+
+        //Restart register
+        if (!connectedToGatt) {
+            registerListenerSensor();
+        }
+
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
 
+        if (!connectedToGatt) {
+            unregisterListenerSensor();
+        }
+    }
+
+    //Function to set sensor
+    private void setSensor() {
+        //Ambient temperature sensor
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)) != null) {
+            //AmbientTemperature sensor is present
+            temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+            isAmbientTempPresent = true;
+            /*  //Start listen event for temperature
+                //sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+            --> enable on resume to disable on pause*/
+        } else {
+            //AmbientTemperature sensor is not present
+            tempValue.setText("Not Present");
+            isAmbientTempPresent = false;
+        }
+
+        //Pressure sensor
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)) != null) {
+            //Pressure sensor is present
+            pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+            isPressureSensorPresent = true;
+        } else {
+            //Pressure sensor is not present
+            pressureValue.setText("Not Present");
+            isPressureSensorPresent = false;
+        }
+
+        //Humidity sensor
+        if ((sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)) != null) {
+            //Humidity sensor is present
+            humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+            isHumiditySensorPresent = true;
+        } else {
+            //Humidity sensor is not present
+            humidityValue.setText("Not Present");
+            isHumiditySensorPresent = false;
+        }
+    }
 
     public void changeProfilePic(View view) {
         Intent choosePic = new Intent(Intent.ACTION_PICK);
@@ -267,9 +361,30 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 return true;
 
             case (R.id.action_mqtt):
-                Toast.makeText(this, "Sending data to remote clients", Toast.LENGTH_SHORT).show();
                 mqttService = new Intent(this, MqttService.class);
+                //Pass object at MqttService activity
                 mqttService.putExtra(StaticResources.EXTRA_LOCATION, position);
+                mqttService.putExtra(StaticResources.EXTRA_CONNECTED_TO_GATT, connectedToGatt);
+                mqttService.putExtra(StaticResources.EXTRA_LOCATION_PERMISSION, locationPermission);
+                if(isStepSensorPresent){
+                    mqttService.putExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, stepDetect);
+                }
+                if(!connectedToGatt){
+                    if(isAmbientTempPresent){
+                        mqttService.putExtra(StaticResources.EXTRA_TEMP_VALUE_SENSOR, tempValueSensor);
+                    }
+                    if(isHumiditySensorPresent){
+                        mqttService.putExtra(StaticResources.EXTRA_HUMIDITY_VALUE_SENSOR, humidityValueSensor);
+                    }
+                    if(locationPermission){
+                        mqttService.putExtra(StaticResources.EXTRA_LATITUDE_VALUE_SENSOR, latitude);
+                        mqttService.putExtra(StaticResources.EXTRA_LONGITUDE_VALUE_SENSOR, longitude);
+                        mqttService.putExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, altitudeValueSensor);
+                    }
+                    if(isPressureSensorPresent){
+                        mqttService.putExtra(StaticResources.EXTRA_PRESSURE_VALUE_SENSOR, pressureValueSensor);
+                    }
+                }
                 try {
                     startService(mqttService);
                 } catch (IllegalStateException | SecurityException e) {
@@ -283,16 +398,13 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
 
             case (R.id.action_about):
                 Intent aboutWebView = new Intent(SensorsInfo.this, AboutWebView.class);
-                aboutWebView.putExtra(StaticResources.WEB_PAGE, "https://github.com/CDOrtona/Tesi");
+                aboutWebView.putExtra(StaticResources.WEB_PAGE, "https://github.com/AndreaCastronovo/TESI");
                 startActivity(aboutWebView);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
-
-    //ask for phone call permissions
-    private final int MY_PERMISSIONS_REQUEST_CALL_PHONE = 1;
 
     public boolean phoneCallPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
@@ -306,32 +418,73 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     }
 
     //result of the phone call permissions or any other permission
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_CALL_PHONE: {
-                // If request is cancelled, the result arrays are empty.
-                if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(this, "Emergency Service won't work without permissions", Toast.LENGTH_SHORT).show();
-                    emergencyBoolean = false;
-                }
-                return;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_CALL_PHONE) {
+            // If request is cancelled, the result arrays are empty.
+            if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                //Toast.makeText(this, "Emergency Service won't work without permissions", Toast.LENGTH_SHORT).show();
+                emergencyBoolean = false;
+            }
+        }
+        if (requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults.length > 0) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getCurrentLocation();
+            } else {
+                altitudeValue.setText("Not Present \n without location");
+                //Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    @Override
+    private void getCurrentLocation() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(3000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationServices.getFusedLocationProviderClient(SensorsInfo.this).requestLocationUpdates(locationRequest, new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                super.onLocationResult(locationResult);
+                LocationServices.getFusedLocationProviderClient(SensorsInfo.this).removeLocationUpdates(this);
+                if(locationResult != null && locationResult.getLocations().size() > 0){
+                    int latestLocationIndex = locationResult.getLocations().size() - 1;
+                    latitude = (float) locationResult.getLocations().get(latestLocationIndex).getLatitude();
+                    longitude = (float) locationResult.getLocations().get(latestLocationIndex).getLongitude();
+                    gpsValue.setText(String.format("Latitu: %.2f\nLongit: %.2f", latitude, longitude));
+                    altitudeValueSensor = (float) locationResult.getLocations().get(latestLocationIndex).getAltitude();
+                    altitudeValue.setText(String.format("%.2f m", altitudeValueSensor));
+
+                }
+            }
+        }, Looper.getMainLooper());
+    }
+
+        @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (connectedToGatt) {
             menu.findItem(R.id.action_connect).setVisible(false);
             menu.findItem(R.id.action_disconnect).setVisible(true);
             menu.findItem(R.id.action_mqtt).setEnabled(true);
-            accessLocation();
-            pedometerValue.setText(Integer.toString(0));
+            //pedometerValue.setText(Integer.toString(0));
             return true;
         } else if (!connectedToGatt) {
             menu.findItem(R.id.action_connect).setVisible(true);
             menu.findItem(R.id.action_disconnect).setVisible(false);
-            menu.findItem(R.id.action_mqtt).setEnabled(false);
+            menu.findItem(R.id.action_mqtt).setEnabled(true);
             return true;
         } else {
             return super.onPrepareOptionsMenu(menu);
@@ -379,15 +532,22 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event) {
-        Sensor sensorChanged = event.sensor;
-        float[] values = event.values;
-        if (values.length > 0) {
-            switch (sensorChanged.getType()) {
-                case Sensor.TYPE_STEP_COUNTER:
-                    if (connectedToGatt)
-                        pedometerValue.setText(Float.toString(values[0]));
-            }
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if(sensorEvent.sensor == pedometer){
+            stepDetect = (int) (stepDetect + sensorEvent.values[0]);
+            pedometerValue.setText(String.valueOf(stepDetect));
+        }
+        else if(sensorEvent.sensor == temperature){
+            tempValueSensor = sensorEvent.values[0];
+            tempValue.setText(String.format("%.2f °C", tempValueSensor));
+        }
+        else if(sensorEvent.sensor == pressureSensor){
+            pressureValueSensor = sensorEvent.values[0];
+            pressureValue.setText(String.format("%.2f hPa", pressureValueSensor));
+        }
+        else if(sensorEvent.sensor == humiditySensor){
+            humidityValueSensor = sensorEvent.values[0];
+            humidityValue.setText(String.format("%.2f %", humidityValueSensor));
         }
     }
 
@@ -410,6 +570,11 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                     stateConnection = intent.getStringExtra(StaticResources.EXTRA_STATE_CONNECTION);
                     if (stateConnection.equals(StaticResources.STATE_CONNECTED)) {
                         connectedToGatt = true;
+
+                        //Stop listening from device sensor
+                        unregisterListenerSensor();
+
+                        //Set Gatt
                         invalidateOptionsMenu();
                         connectionStateString(StaticResources.STATE_CONNECTED);
                         //new Sensor object which will be passed to the MqttConnection constructor
@@ -417,6 +582,9 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                         connectedToGatt = false;
                         invalidateOptionsMenu();
                         connectionStateString(StaticResources.STATE_DISCONNECTED);
+
+                        //ReStart listening of device sensors
+                        registerListenerSensor();
                     }
                     break;
                 //this received broadcast lets the activity that subbed to this intent filter know which is the characteristic that has changed
@@ -473,47 +641,13 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         }
     }
 
-    public void locationUpdate() {
-        //this creates a location request with default parameters
-        LocationRequest locationRequest = LocationRequest.create();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        locationProviderClient.requestLocationUpdates(locationRequest, locationCallBack, Looper.getMainLooper());
-    }
-
-    private final LocationCallback locationCallBack = new LocationCallback() {
-        @Override
-        public void onLocationResult(@NonNull LocationResult locationResult) {
-            super.onLocationResult(locationResult);
-            //this is similar to a for each loop that stores all the locations found in the location arrayList
-            locationList.addAll(locationResult.getLocations());
-        }
-    };
-
     private void accessLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
-            Log.d(TAG, "Location permission disabled, sent request permission activation dialog");
-            accessLocation();
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            locationPermission = false;
+            ActivityCompat.requestPermissions(SensorsInfo.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_LOCATION_PERMISSION);
         } else {
-            Log.d(TAG, "Location permission enabled");
-            locationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    //location is null if there is no known location found
-                    position = Math.round(location.getLatitude() * 100d) / 100d + "," +
-                            +Math.round(location.getLongitude() * 100d) / 100d;
-                    gpsValue.setText(position);
-                }
-            });
+            locationPermission = true;
+            getCurrentLocation();
         }
     }
 
@@ -546,9 +680,10 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
         connectionStateString(StaticResources.STATE_DISCONNECTED);
         //destroy the MQTT service
         //stopService(mqttService);
-        //this is gonna flush the location stored in the location variable
-        locationProviderClient.flushLocations();
-        locationProviderClient.removeLocationUpdates(locationCallBack);
+
+        //ReStart listening of device sensor
+        setSensor();
+        registerListenerSensor();
     }
 
     //this dynamically changes the string color and text of the string that shows on screen the connection state
@@ -566,6 +701,35 @@ public class SensorsInfo extends AppCompatActivity implements SensorEventListene
                 connectionState.setTextColor(Color.RED);
                 connectionState.setText(StaticResources.STATE_DISCONNECTED);
                 break;
+        }
+    }
+
+    //Function to unregister listener of sensor that i choose
+    private void unregisterListenerSensor(){
+        if (isAmbientTempPresent) {
+            sensorManager.unregisterListener(this, temperature);
+        }
+        if (isPressureSensorPresent) {
+            sensorManager.unregisterListener(this, pressureSensor);
+        }
+        if (isHumiditySensorPresent) {
+            sensorManager.unregisterListener(this, humiditySensor);
+        }
+    }
+
+    //Function to unregister listener of sensor that i choose
+    private void registerListenerSensor(){
+        if(isAmbientTempPresent){
+            //Start listen event for temperature
+            sensorManager.registerListener(this, temperature, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(isPressureSensorPresent){
+            //Start listen event for pressure
+            sensorManager.registerListener(this, pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(isHumiditySensorPresent){
+            //Start listen event for humidity
+            sensorManager.registerListener(this, humiditySensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
 

@@ -8,7 +8,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 
 /**
- *@author Cristian D'Ortona
+ *@author Cristian D'Ortona / Andrea Castronovo / Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *

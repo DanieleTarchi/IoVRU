@@ -15,7 +15,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 /**
- *@author Cristian D'Ortona
+ *@author Cristian D'Ortona / Andrea Castronovo / Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *

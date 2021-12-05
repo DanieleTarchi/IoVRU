@@ -20,10 +20,12 @@ android {
 }
 repositories {
     maven {
+        url "https://repo.eclipse.org/content/repositories/paho-releases/"
+    }
+    maven {
         url "https://repo.eclipse.org/content/repositories/paho-snapshots/"
     }
 }
-
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

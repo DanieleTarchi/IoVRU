@@ -28,9 +28,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Locale;
 
 /**
- *@author Cristian D'Ortona
+ *@author Cristian D'Ortona / Andrea Castronovo / Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *
@@ -41,9 +45,9 @@ public class MqttService extends Service {
     String TAG = "MqttService";
     MqttAsyncClient client;
     //test variables
-    private final String serverUri = "tcp://192.168.1.61:1883";
-    private final String user = "cPanel";
-    private final String pwd = "test";
+    private final String serverUri = "tcp://192.168.1.2:1883";
+    private final String user = "andrea";
+    private final String pwd = "1234";
     private MemoryPersistence persistance;
 
     String temp;
@@ -73,23 +77,40 @@ public class MqttService extends Service {
 
         String clientId = MqttClient.generateClientId();
 
-        //client = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
-
-
         try {
+            client = new MqttAsyncClient(serverUri, clientId, persistance);
             MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
             mqttConnectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
             mqttConnectOptions.setCleanSession(true);
             mqttConnectOptions.setAutomaticReconnect(true);
             mqttConnectOptions.setUserName(user);
             mqttConnectOptions.setPassword(pwd.toCharArray());
-            client = new MqttAsyncClient(serverUri, clientId, persistance);
-            client.connect(mqttConnectOptions);
-            try {
+            IMqttToken token = client.connect(mqttConnectOptions);
+
+            /*token.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // We are connected
+                    Log.d(TAG, "onSuccess");
+                    System.out.println("CONNECTED_WITH_RASPBERRY");
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // Something went wrong e.g. connection timeout or firewal
+                    Log.d(TAG, "onFailure");
+                    System.out.println("FAILURE_WITH_RASPBERRY");
+                }
+            });*/
+
+
+
+            try{
                 Thread.sleep(5000);
-            } catch (Exception e){
+            }catch (Exception e){
                 e.printStackTrace();
             }
+
             client.setCallback(new MqttCallback() {
                 @Override
                 public void connectionLost(Throwable cause) {
@@ -108,7 +129,7 @@ public class MqttService extends Service {
                 }
             });
 
-            client.connect(mqttConnectOptions);
+            token = client.connect(mqttConnectOptions);
 
         }  catch (MqttException ex){
             ex.printStackTrace();
@@ -118,8 +139,37 @@ public class MqttService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        boolean sos_on = intent.getBooleanExtra(StaticResources.EXTRA_SOS_FLAG, false);
+        //Get object from SensorInfo
         String position = intent.getStringExtra(StaticResources.EXTRA_LOCATION);
+        boolean sos_on = intent.getBooleanExtra(StaticResources.EXTRA_SOS_FLAG, false);
+        boolean connectedToGatt = intent.getBooleanExtra(StaticResources.EXTRA_CONNECTED_TO_GATT, false);
+        boolean locationPermission = intent.getBooleanExtra(StaticResources.EXTRA_LOCATION_PERMISSION, false);
+        float latitude = 360;
+        float longitude = 360;
+        float altitudeValueSensor = 9999;
+        if(locationPermission){
+            latitude = intent.getFloatExtra(StaticResources.EXTRA_LATITUDE_VALUE_SENSOR, 360);
+            longitude = intent.getFloatExtra(StaticResources.EXTRA_LONGITUDE_VALUE_SENSOR, 360);
+            altitudeValueSensor = intent.getFloatExtra(StaticResources.EXTRA_ALTITUDE_VALUE_SENSOR, 9999);
+        }
+        float tempValueSensor = intent.getFloatExtra(StaticResources.EXTRA_TEMP_VALUE_SENSOR, -999);
+        float humidityValueSensor = intent.getFloatExtra(StaticResources.EXTRA_HUMIDITY_VALUE_SENSOR, -1);
+        float pressureValueSensor = intent.getFloatExtra(StaticResources.EXTRA_PRESSURE_VALUE_SENSOR, 0);
+        int stepDetect = intent.getIntExtra(StaticResources.EXTRA_PEDOMETER_VALUE_SENSOR, -1);
+
+        /*TO TEST (PRINT) VALUE
+        System.out.println("CONNECTED TO GATT: " + connectedToGatt);
+        System.out.println("LOCATION PERMISSION: " + locationPermission);
+        System.out.println("LATITUDE: " + latitude);
+        System.out.println("LONGITUDE: " + longitude);
+        System.out.println("TEMPERATURE: " + tempValueSensor);
+        System.out.println("HUMIDITY: " + humidityValueSensor);
+        System.out.println("PRESSURE: " + pressureValueSensor);
+        System.out.println("ALTITUDE: " + altitudeValueSensor);
+        System.out.println("PEDOMETER: " + stepDetect);*/
+
+
+
         //this is checking if the user has fired the sos
         if(sos_on){
             try {
@@ -128,16 +178,47 @@ public class MqttService extends Service {
                 e.printStackTrace();
             }
         } else {
-            if(temp != null)
-                pub(StaticResources.TEMP_TOPIC, temp, StaticResources.QOS_0);
-            if(humidity != null)
-                pub(StaticResources.HUMIDITY_TOPIC, humidity, StaticResources.QOS_0);
-            if(pressure != null)
-                pub(StaticResources.PRESSURE_TOPIC, pressure, StaticResources.QOS_0);
-            if(altitude != null)
-                pub(StaticResources.ALTITUDE_TOPIC, altitude, StaticResources.QOS_0);
-            if(position != null)
-                pub(StaticResources.GPS_TOPIC, position, StaticResources.QOS_0);
+
+            if(stepDetect != -1){
+                String stepDetectString = String.valueOf(stepDetect);
+                pub(StaticResources.PEDOMETER_SENSOR_TOPIC, stepDetectString, StaticResources.QOS_0);
+            }
+
+            if(connectedToGatt){
+                if(temp != null)
+                    pub(StaticResources.TEMP_TOPIC, temp, StaticResources.QOS_0);
+                if(humidity != null)
+                    pub(StaticResources.HUMIDITY_TOPIC, humidity, StaticResources.QOS_0);
+                if(pressure != null)
+                    pub(StaticResources.PRESSURE_TOPIC, pressure, StaticResources.QOS_0);
+                if(altitude != null)
+                    pub(StaticResources.ALTITUDE_TOPIC, altitude, StaticResources.QOS_0);
+                if(position != null)
+                    pub(StaticResources.GPS_TOPIC, position, StaticResources.QOS_0);
+            } else{
+                if(tempValueSensor != -999){
+                    String tempValueSensorString = String.valueOf(tempValueSensor);
+                    pub(StaticResources.TEMP_SENSOR_TOPIC, tempValueSensorString, StaticResources.QOS_0);
+                }
+                if(humidityValueSensor != -1){
+                    String humidityValueSensorString = String.valueOf(humidityValueSensor);
+                    pub(StaticResources.HUMIDITY_SENSOR_TOPIC, humidityValueSensorString, StaticResources.QOS_0);
+                }
+                if(pressureValueSensor != 0){
+                    String pressureValueSensorString = String.valueOf(pressureValueSensor);
+                    pub(StaticResources.PRESSURE_SENSOR_TOPIC, pressureValueSensorString, StaticResources.QOS_0);
+                }
+                if(locationPermission && altitudeValueSensor != 9999){
+                    String altitudeValueSensorString = String.valueOf(altitudeValueSensor);
+                    pub(StaticResources.ALTITUDE_SENSOR_TOPIC, altitudeValueSensorString, StaticResources.QOS_0);
+                }
+                if(locationPermission && latitude != 360 && longitude != 360){
+                    String positionString = String.valueOf(latitude);
+                    pub(StaticResources.LATITUDE_TOPIC, positionString, StaticResources.QOS_0);
+                    positionString = String.valueOf(longitude);
+                    pub(StaticResources.LONGITUDE_TOPIC, positionString, StaticResources.QOS_0);
+                }
+            }
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -181,6 +262,7 @@ public class MqttService extends Service {
             MqttMessage message = new MqttMessage(encodedPayload);
             message.setQos(QoS);
             client.publish(topic, message);
+            Toast.makeText(this.getApplicationContext(),"Data sent", Toast.LENGTH_SHORT).show();
         } catch (MqttException e) {
             e.printStackTrace();
         }

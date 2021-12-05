@@ -1,7 +1,7 @@
 package org.acastronovo.tesi;
 
 /**
- *@author Cristian D'Ortona
+ *@author Cristian D'Ortona / Andrea Castronovo / Alberto Iantorni
  *
  * TESI DI LAUREA IN INGEGNERIA ELETTRONICA E DELLE TELECOMUNICAZIONI
  *
@@ -10,6 +10,8 @@ package org.acastronovo.tesi;
 final class StaticResources {
 
     private static final String PACKAGE_NAME = "com.acastronovo.tesi";
+
+    static final String SENSOR_DEVICE = "sensorsDevice";
 
     //ESP32 info
     static final String ESP32_ADDRESS = "30:AE:A4:F5:88:6E";
@@ -32,10 +34,18 @@ final class StaticResources {
     //Keys for the putExtra method
     static final String EXTRA_STATE_CONNECTION = PACKAGE_NAME + "keyConnection";
     static final String EXTRA_TEMP_VALUE = PACKAGE_NAME + "tempValue";
+    static final String EXTRA_TEMP_VALUE_SENSOR = PACKAGE_NAME + "tempValueSensor";
     static final String EXTRA_HEART_VALUE = PACKAGE_NAME + "heartValue";
     static final String EXTRA_HUMIDITY_VALUE = PACKAGE_NAME + "humidityValue";
+    static final String EXTRA_HUMIDITY_VALUE_SENSOR = PACKAGE_NAME + "humidityValueSensor";
     static final String EXTRA_PRESSURE_VALUE = PACKAGE_NAME + "pressureValue";
+    static final String EXTRA_PRESSURE_VALUE_SENSOR = PACKAGE_NAME + "pressureValueSensor";
     static final String EXTRA_ALTITUDE_VALUE = PACKAGE_NAME + "altitudeValue";
+    static final String EXTRA_ALTITUDE_VALUE_SENSOR = PACKAGE_NAME + "altitudeValueSensor";
+    static final String EXTRA_PEDOMETER_VALUE_SENSOR = PACKAGE_NAME + "pedometerValueSensor";
+    static final String EXTRA_LATITUDE_VALUE_SENSOR = PACKAGE_NAME + "latitude";
+    static final String EXTRA_LONGITUDE_VALUE_SENSOR = PACKAGE_NAME + "longitude";
+    static final String EXTRA_LOCATION_PERMISSION = PACKAGE_NAME + "location_permission";
     static final String EXTRA_TEMP_BYTE_VALUE = PACKAGE_NAME + "tempValueByte";
     static final String EXTRA_HEART_BYTE_VALUE = PACKAGE_NAME + "heartValueByte";
     static final String EXTRA_HUMIDITY_BYTE_VALUE = PACKAGE_NAME + "humidityValueByte";
@@ -52,14 +62,22 @@ final class StaticResources {
     static final String LWT_MESSAGE = "Last Will and Testament from " + ESP32_ADDRESS;
     static final String LWT_TOPIC = ESP32_ADDRESS + "/lastWill";
     static final String TEMP_TOPIC = ESP32_ADDRESS + "/temp";
+    static final String TEMP_SENSOR_TOPIC = SENSOR_DEVICE + "/temp";
     static final String HUMIDITY_TOPIC = ESP32_ADDRESS + "/humidity";
+    static final String HUMIDITY_SENSOR_TOPIC = SENSOR_DEVICE + "/humidity";
     static final String PRESSURE_TOPIC = ESP32_ADDRESS + "/pressure";
+    static final String PRESSURE_SENSOR_TOPIC = SENSOR_DEVICE + "/pressure";
     static final String ALTITUDE_TOPIC = ESP32_ADDRESS + "/altitude";
+    static final String ALTITUDE_SENSOR_TOPIC = SENSOR_DEVICE + "/altitude";
+    static final String PEDOMETER_SENSOR_TOPIC = SENSOR_DEVICE + "/pedometer";
     static final String HEART_TOPIC = ESP32_ADDRESS + "/heart";
     static final String SOS_TOPIC =  "emergency/sos";
     static final String GPS_TOPIC = ESP32_ADDRESS + "/gps";
+    static final String LATITUDE_TOPIC = SENSOR_DEVICE + "/latitude";
+    static final String LONGITUDE_TOPIC = SENSOR_DEVICE + "/longitude";
     static final String EXTRA_SOS_FLAG = PACKAGE_NAME + "sos_flag";
     static final String EXTRA_LOCATION = PACKAGE_NAME + "location_mqtt";
+    static final String EXTRA_CONNECTED_TO_GATT = PACKAGE_NAME + "connected_to_gatt";
     static final int QOS_0 = 0;
     static final int QOS_1 = 1;
     static final int QOS_2 = 2;
